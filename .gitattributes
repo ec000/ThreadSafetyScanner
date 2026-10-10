@@ -1,0 +1,2 @@
+# Preserve vendor license bytes and ignore their original whitespace formatting.
+OfflineRelease/Licenses/** -text -whitespace

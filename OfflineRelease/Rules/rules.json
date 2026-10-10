@@ -1,0 +1,226 @@
+[
+  {
+    "Function": "strtok",
+    "Priority": "P1",
+    "Category": "线程安全候选",
+    "Reason": "Internal parsing cursor shared across calls",
+    "Recommendation": "strtok_r; verify buffer ownership",
+    "Enabled": true
+  },
+  {
+    "Function": "inet_ntoa",
+    "Priority": "P2",
+    "Category": "线程安全候选",
+    "Reason": "Library-managed result lifetime; portability caveat",
+    "Recommendation": "inet_ntop",
+    "Enabled": true
+  },
+  {
+    "Function": "ipaddr_ntoa",
+    "Priority": "P1",
+    "Category": "线程安全候选",
+    "Reason": "lwIP shared static output buffer",
+    "Recommendation": "ipaddr_ntoa_r",
+    "Enabled": true
+  },
+  {
+    "Function": "ip4addr_ntoa",
+    "Priority": "P1",
+    "Category": "线程安全候选",
+    "Reason": "lwIP shared static output buffer",
+    "Recommendation": "ip4addr_ntoa_r",
+    "Enabled": true
+  },
+  {
+    "Function": "ip6addr_ntoa",
+    "Priority": "P1",
+    "Category": "线程安全候选",
+    "Reason": "lwIP shared static output buffer",
+    "Recommendation": "ip6addr_ntoa_r",
+    "Enabled": true
+  },
+  {
+    "Function": "localtime",
+    "Priority": "P2",
+    "Category": "线程安全候选",
+    "Reason": "Internal tm result and timezone interactions",
+    "Recommendation": "localtime_r",
+    "Enabled": true
+  },
+  {
+    "Function": "gmtime",
+    "Priority": "P2",
+    "Category": "线程安全候选",
+    "Reason": "Internal tm result",
+    "Recommendation": "gmtime_r",
+    "Enabled": true
+  },
+  {
+    "Function": "asctime",
+    "Priority": "P1",
+    "Category": "线程安全候选",
+    "Reason": "Library-managed static output",
+    "Recommendation": "strftime",
+    "Enabled": true
+  },
+  {
+    "Function": "ctime",
+    "Priority": "P1",
+    "Category": "线程安全候选",
+    "Reason": "Library-managed static output",
+    "Recommendation": "localtime_r + strftime",
+    "Enabled": true
+  },
+  {
+    "Function": "strerror",
+    "Priority": "P2",
+    "Category": "线程安全候选",
+    "Reason": "MT-safety depends on libc/version",
+    "Recommendation": "strerror_r (check GNU/POSIX variant)",
+    "Enabled": true
+  },
+  {
+    "Function": "gethostbyname",
+    "Priority": "P1",
+    "Category": "线程安全候选",
+    "Reason": "Legacy resolver; static result storage",
+    "Recommendation": "getaddrinfo",
+    "Enabled": true
+  },
+  {
+    "Function": "gethostbyname2",
+    "Priority": "P1",
+    "Category": "线程安全候选",
+    "Reason": "Legacy resolver; static result storage",
+    "Recommendation": "getaddrinfo",
+    "Enabled": true
+  },
+  {
+    "Function": "gethostbyaddr",
+    "Priority": "P1",
+    "Category": "线程安全候选",
+    "Reason": "Legacy resolver; static result storage",
+    "Recommendation": "getnameinfo",
+    "Enabled": true
+  },
+  {
+    "Function": "getpwnam",
+    "Priority": "P1",
+    "Category": "线程安全候选",
+    "Reason": "Internal passwd result may be overwritten",
+    "Recommendation": "getpwnam_r",
+    "Enabled": true
+  },
+  {
+    "Function": "getpwuid",
+    "Priority": "P1",
+    "Category": "线程安全候选",
+    "Reason": "Internal passwd result may be overwritten",
+    "Recommendation": "getpwuid_r",
+    "Enabled": true
+  },
+  {
+    "Function": "readdir",
+    "Priority": "P2",
+    "Category": "线程安全候选",
+    "Reason": "Same DIR* requires synchronization; different DIR* generally OK",
+    "Recommendation": "Independent DIR* or lock and copy",
+    "Enabled": true
+  },
+  {
+    "Function": "rand",
+    "Priority": "REVIEW",
+    "Category": "线程安全候选",
+    "Reason": "Predictable PRNG; global state in some libc",
+    "Recommendation": "CSPRNG for secrets; per-thread PRNG otherwise",
+    "Enabled": true
+  },
+  {
+    "Function": "srand",
+    "Priority": "REVIEW",
+    "Category": "线程安全候选",
+    "Reason": "Resets PRNG state; global behavior in some libc",
+    "Recommendation": "Initialize PRNG appropriately; CSPRNG for secrets",
+    "Enabled": true
+  },
+  {
+    "Function": "getenv",
+    "Priority": "P2",
+    "Category": "线程安全候选",
+    "Reason": "Result lifetime unsafe when env changes concurrently",
+    "Recommendation": "Cache values before starting threads",
+    "Enabled": true
+  },
+  {
+    "Function": "setenv",
+    "Priority": "P2",
+    "Category": "线程安全候选",
+    "Reason": "May race with concurrent environment reads/writes",
+    "Recommendation": "Initialize environment before threads",
+    "Enabled": true
+  },
+  {
+    "Function": "putenv",
+    "Priority": "P2",
+    "Category": "线程安全候选",
+    "Reason": "May race; supplied storage must remain valid",
+    "Recommendation": "Initialize environment before threads",
+    "Enabled": true
+  },
+  {
+    "Function": "unsetenv",
+    "Priority": "P2",
+    "Category": "线程安全候选",
+    "Reason": "May race with concurrent environment reads",
+    "Recommendation": "Initialize environment before threads",
+    "Enabled": true
+  },
+  {
+    "Function": "setlocale",
+    "Priority": "P2",
+    "Category": "线程安全候选",
+    "Reason": "Changes process-wide locale state",
+    "Recommendation": "Set before threads; use uselocale if supported",
+    "Enabled": true
+  },
+  {
+    "Function": "getopt",
+    "Priority": "P2",
+    "Category": "线程安全候选",
+    "Reason": "Shared parsing cursor/optind state",
+    "Recommendation": "Parse arguments in startup phase",
+    "Enabled": true
+  },
+  {
+    "Function": "getopt_long",
+    "Priority": "P2",
+    "Category": "线程安全候选",
+    "Reason": "Shared parsing cursor/optind state",
+    "Recommendation": "Parse arguments in startup phase",
+    "Enabled": true
+  },
+  {
+    "Function": "getopt_long_only",
+    "Priority": "P2",
+    "Category": "线程安全候选",
+    "Reason": "Shared parsing cursor/optind state",
+    "Recommendation": "Parse arguments in startup phase",
+    "Enabled": true
+  },
+  {
+    "Function": "system",
+    "Priority": "REVIEW",
+    "Category": "线程安全候选",
+    "Reason": "Shell execution, blocking and child-process effects",
+    "Recommendation": "posix_spawn or explicit exec + argv",
+    "Enabled": true
+  },
+  {
+    "Function": "exit",
+    "Priority": "REVIEW",
+    "Category": "线程安全候选",
+    "Reason": "Terminates process rather than individual thread",
+    "Recommendation": "return / pthread_exit for worker thread",
+    "Enabled": true
+  }
+]

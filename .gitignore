@@ -14,3 +14,7 @@ Win10_1709_Offline_Thread_Safety_Kit_v2.zip
 *.user
 *.suo
 tests/results/
+**/__pycache__/
+*.pyc
+OfflineRelease/Licenses/*.zip
+OfflineRelease/Licenses/*.tar.bz2

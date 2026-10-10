@@ -1,0 +1,15 @@
+ThreadSafetyScanner 第三方组件声明
+
+新应用、安装和兼容性补丁：GPL-3.0-or-later，见 GPL-3.0.txt 和随附 ThreadSafetyScanner-source.zip。
+ripgrep 13.0.0：MIT OR Unlicense，见 ripgrep/；Rust 依赖锁定版本的完整许可证集合见 ripgrep-dependency-licenses.zip（包括可选和构建依赖的超集）。
+Cppcheck 2.10-tss1：GPL-3.0-or-later，原始及修改后的对应源码均随包提供。修改：wmain UTF-8 参数、Win32 W 文件路径、libc++ allocator rebind、移除交叉编译中无关的 dmake 运行、静态运行时，以及拒绝 UNC、映射网络盘和重解析点文件读取。未改变检查规则逻辑。
+simplecpp：LGPL-3.0-or-later，见 cppcheck/simplecpp_license.txt；对应源码在 Cppcheck 源码包中。可按随附构建脚本重编译和替换组件，再生成校验清单。
+tinyxml2：zlib，见 cppcheck/tinyxml2_license.txt。
+picojson：BSD-2-Clause，见 cppcheck/picojson_license.txt。
+LLVM libc++/libc++abi/compiler-rt/unwind：Apache-2.0 WITH LLVM-exception（工具链对应 LICENSE.TXT 完整附上）。
+MinGW-w64/UCRT import libraries/winpthreads：各部分许可见 mingw/COPYING*。UCRT 本身是 Windows 系统组件，不将开发机系统 DLL 复制到安装包。
+NSIS 3.10 安装器及内置插件：zlib/libpng；压缩模块另见 NSIS-COPYING.txt，LZMA 为 CPL-1.0；对应官方源代码 NSIS-3.10-source.tar.bz2 随包提供。
+Windows、.NET Framework、系统中文字体由目标操作系统提供，不包含 Microsoft Office、Python、Qt、Semgrep 或系统级运行库安装器。
+
+不使用遥测、在线服务或更新下载。许可证/源代码在 Licenses 目录，可离线查看。
+文件校验用于检测损坏；用户自行修改和重编译后可使用随附构建脚本更新清单，不限制 GPL/LGPL 允许的修改和调试。

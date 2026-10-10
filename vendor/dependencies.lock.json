@@ -1,0 +1,79 @@
+[
+  {
+    "file": "ripgrep-13.0.0-x64.zip",
+    "url": "https://github.com/BurntSushi/ripgrep/releases/download/13.0.0/ripgrep-13.0.0-x86_64-pc-windows-msvc.zip",
+    "sha256": "a47ace6f654c5ffa236792fc3ee3fefd9c7e88e026928b44da801acb72124aa8",
+    "sizeBytes": 1734357,
+    "usage": "build-input; only explicit collected payload is shipped"
+  },
+  {
+    "file": "ripgrep-13.0.0-source.tar.gz",
+    "url": "https://codeload.github.com/BurntSushi/ripgrep/tar.gz/refs/tags/13.0.0",
+    "sha256": "0fb17aaf285b3eee8ddab17b833af1e190d73de317ff9648751ab0660d763ed2",
+    "sizeBytes": 505536,
+    "usage": "build-input; only explicit collected payload is shipped"
+  },
+  {
+    "file": "cppcheck-2.10-source.zip",
+    "url": "https://downloads.sourceforge.net/project/cppcheck/cppcheck/2.10/cppcheck-2.10.zip",
+    "sha256": "33afa637b737d608286f1f62e589cac59cea1925b7af42b3dfbf8f42d1c305d6",
+    "sizeBytes": 3749012,
+    "usage": "build-input; only explicit collected payload is shipped"
+  },
+  {
+    "file": "cppcheck-2.10-x64-Setup.msi",
+    "url": "https://downloads.sourceforge.net/project/cppcheck/cppcheck/2.10/cppcheck-2.10-x64-Setup.msi",
+    "sha256": "1963084475f34628a5c100ed8b90834d8575d28dd4ec9548d4c92c138df2fb9f",
+    "sizeBytes": 19197952,
+    "usage": "inspection-only-not-shipped"
+  },
+  {
+    "file": "llvm-mingw-20231128.tar.xz",
+    "url": "https://github.com/mstorsjo/llvm-mingw/releases/download/20231128/llvm-mingw-20231128-ucrt-macos-universal.tar.xz",
+    "sha256": "2b2655975031b8af869c5d466cb890ba5becb8f6863f9fe7c7018b7022b14f8a",
+    "sizeBytes": 88194400,
+    "usage": "build-input; only explicit collected payload is shipped"
+  },
+  {
+    "file": "nsis-3.10.zip",
+    "url": "https://downloads.sourceforge.net/project/nsis/NSIS%203/3.10/nsis-3.10.zip",
+    "sha256": "fcdce3229717a2a148e7cda0ab5bdb667f39d8fb33ede1da8dabc336bd5ad110",
+    "sizeBytes": 2358406,
+    "usage": "build-input; only explicit collected payload is shipped"
+  },
+  {
+    "file": "nsis-3.10-src.tar.bz2",
+    "url": "https://downloads.sourceforge.net/project/nsis/NSIS%203/3.10/nsis-3.10-src.tar.bz2",
+    "sha256": "11b54a6307ab46fef505b2700aaf6f62847c25aa6eebaf2ae0aab2f17f0cb297",
+    "sizeBytes": 1813470,
+    "usage": "build-input; only explicit collected payload is shipped"
+  },
+  {
+    "file": "dotnet-runtime-osx-arm64.tar.gz",
+    "url": "https://builds.dotnet.microsoft.com/dotnet/Runtime/8.0.11/dotnet-runtime-8.0.11-osx-arm64.tar.gz",
+    "sha256": "7cf87e0c243fb068fd499d9bb21abd05b9c36cb7fab9d1a499d7d6d6f5d443ff",
+    "sizeBytes": 29137033,
+    "usage": "build-input; only explicit collected payload is shipped"
+  },
+  {
+    "file": "roslyn-4.12.0.zip",
+    "url": "https://api.nuget.org/v3-flatcontainer/microsoft.net.compilers.toolset/4.12.0/microsoft.net.compilers.toolset.4.12.0.nupkg",
+    "sha256": "fe24ef31a6ffcb7c49383d2fd362763dee291ad9b9d98cc0c19ef80203b99ebc",
+    "sizeBytes": 21775071,
+    "usage": "build-input; only explicit collected payload is shipped"
+  },
+  {
+    "file": "net471-reference.zip",
+    "url": "https://api.nuget.org/v3-flatcontainer/microsoft.netframework.referenceassemblies.net471/1.0.3/microsoft.netframework.referenceassemblies.net471.1.0.3.nupkg",
+    "sha256": "2d1662724b3794992640c59bfceb2f010e62a3bdb581a626d1b6d7bd5149d575",
+    "sizeBytes": 20749662,
+    "usage": "build-input; only explicit collected payload is shipped"
+  },
+  {
+    "file": "scons.tar.gz",
+    "url": "https://files.pythonhosted.org/packages/source/S/SCons/scons-4.8.1.tar.gz",
+    "sha256": "5b641357904d2f56f7bfdbb37e165ab996b6143c948b9df0efc7305f54949daa",
+    "sizeBytes": 3244174,
+    "usage": "build-input; only explicit collected payload is shipped"
+  }
+]

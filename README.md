@@ -2,7 +2,7 @@
 
 面向全新、完全离线 Windows 10 专业版 1709（Build 16299.15，x64）的 C/C++ 线程安全候选扫描工具。
 
-**当前状态：开发中，尚未完成完整安装包，待 Windows 10 1709 实机验证。没有可宣称验收成功的 Release。**
+**当前状态：已生成包含实际依赖的完整离线安装候选包，待 Windows 10 1709 实机验证。没有可宣称验收成功的 Release。**
 
 最高优先级是：新电脑不安装 Python、ripgrep、Cppcheck、Visual Studio，不配置 PATH，断网后通过一个完整安装程序完成安装、扫描及报告导出。
 
@@ -27,3 +27,18 @@
 缺少任何必需文件、许可证、运行库或哈希校验失败时必须阻止构建。即使生成 EXE，在相同 Build 16299.15 干净断网系统完成真实扫描与安装/卸载测试之前，也只能标记为“待实机验证”，不能发布为验收成功的 Release。较新 Windows、macOS 上的测试不能替代目标系统验证。
 
 详见 [修改记录](CHANGELOG.md)、[离线要求](docs/OFFLINE_REQUIREMENTS.zh-CN.md)。
+
+## 当前实现与验证
+
+已实现 C# WinForms GUI、三个扫描模式、规则管理、代码位置预览、分类筛选、取消、历史以及十种本地报告导出。内置 ripgrep 13.0.0 与 Cppcheck 2.10-tss1 静态构建。安装器由 NSIS 3.10 编译，只有明确收集并审计的 OfflineRelease 文件会进入安装器。
+
+C# 和 Cppcheck 已完成交叉编译；发布门禁自动测试通过，并已从实际安装器解包核对内置 SHA256。尚无 Windows 1709 运行测试证据，功能和系统兼容性均不能以编译成功替代实测。
+
+- [中文安装和使用说明](docs/README_中文.md)
+- [完整构建流程](docs/BUILDING.zh-CN.md)
+- [离线依赖及构建输入锁定清单](vendor/dependencies.lock.json)
+- [实际载荷依赖清单](OfflineRelease/Manifest/dependencies.json)
+- [测试报告](docs/TEST-REPORT.zh-CN.md)
+- [Windows 1709 验收清单](docs/WINDOWS1709-CHECKLIST.zh-CN.md)
+
+本仓库不提交下载缓存或生成的安装器。完整安装器位于本地 artifacts/candidate；从源码重建时，联网只发生在构建电脑预收集依赖阶段，目标电脑安装、扫描和导出不需要下载。参见构建说明中的缺失依赖阻断检查和精确目标系统验收门禁。
