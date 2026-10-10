@@ -1,0 +1,16 @@
+.DS_Store
+build/
+vendor/downloads/
+artifacts/
+**/bin/
+**/obj/
+OfflineRelease/Application/*.exe
+OfflineRelease/Application/*.pdb
+OfflineRelease/Tools/
+OfflineRelease/Licenses/*source*.zip
+OfflineRelease/Installer/*.exe
+Win10_1709_Offline_Thread_Safety_Kit_v2.zip
+*.log
+*.user
+*.suo
+tests/results/

@@ -1,0 +1,6 @@
+tool,version,platform,official_url,packaged,notes
+PowerShell,5.1,Windows 10 1709 built-in,https://learn.microsoft.com/powershell/,YES,required no network or installer
+Python,3.11.9,Windows x64,https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe,NO,optional official offline full installer
+ripgrep,14.1.1,Windows x64 msvc,https://github.com/BurntSushi/ripgrep/releases/download/14.1.1/ripgrep-14.1.1-x86_64-pc-windows-msvc.zip,NO,optional portable binary; verify old Windows compatibility
+Cppcheck,2.18.0,Windows x64 MSI,https://sourceforge.net/projects/cppcheck/files/cppcheck/2.18/cppcheck-2.18.0-x64-Setup.msi/download,NO,optional MSI; verify on target before relying on result
+Semgrep,version-dependent,Windows x64,https://semgrep.dev/docs/getting-started/,NO,optional NOT assured working on Win10 1709

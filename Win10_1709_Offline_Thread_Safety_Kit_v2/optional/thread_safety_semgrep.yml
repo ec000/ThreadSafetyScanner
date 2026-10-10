@@ -1,0 +1,69 @@
+rules:
+  - id: switch.strtok-nonreentrant
+    languages: [c, cpp]
+    severity: HIGH
+    message: "strtok maintains shared parsing state; review and replace with strtok_r when parsing can overlap."
+    pattern: strtok(...)
+
+  - id: switch.lwip-address-static-buffer
+    languages: [c, cpp]
+    severity: HIGH
+    message: "lwIP address-to-string helper uses a shared result buffer; use the matching _r version with caller-owned storage."
+    pattern-either:
+      - pattern: ipaddr_ntoa(...)
+      - pattern: ip4addr_ntoa(...)
+      - pattern: ip6addr_ntoa(...)
+
+  - id: switch.legacy-resolver
+    languages: [c, cpp]
+    severity: HIGH
+    message: "Legacy resolver returns library-managed data; prefer getaddrinfo/getnameinfo with explicit ownership."
+    pattern-either:
+      - pattern: gethostbyname(...)
+      - pattern: gethostbyname2(...)
+      - pattern: gethostbyaddr(...)
+
+  - id: switch.passwd-nonreentrant
+    languages: [c, cpp]
+    severity: HIGH
+    message: "User database lookup returns library-managed data; review use of getpwnam_r/getpwuid_r."
+    pattern-either:
+      - pattern: getpwnam(...)
+      - pattern: getpwuid(...)
+
+  - id: switch.libc-static-result
+    languages: [c, cpp]
+    severity: MEDIUM
+    message: "Review library-managed result lifetime and libc thread-safety guarantees; prefer caller-owned output."
+    pattern-either:
+      - pattern: inet_ntoa(...)
+      - pattern: localtime(...)
+      - pattern: gmtime(...)
+      - pattern: asctime(...)
+      - pattern: ctime(...)
+      - pattern: strerror(...)
+
+  - id: switch.process-global-state
+    languages: [c, cpp]
+    severity: MEDIUM
+    message: "Review concurrent access to process-global parsing, locale, or environment state."
+    pattern-either:
+      - pattern: getenv(...)
+      - pattern: setenv(...)
+      - pattern: putenv(...)
+      - pattern: unsetenv(...)
+      - pattern: setlocale(...)
+      - pattern: getopt(...)
+      - pattern: getopt_long(...)
+      - pattern: getopt_long_only(...)
+
+  - id: switch.review-context-dependent-functions
+    languages: [c, cpp]
+    severity: LOW
+    message: "Context review required: check shared DIR*, random security, shell commands, or process termination semantics."
+    pattern-either:
+      - pattern: readdir(...)
+      - pattern: rand(...)
+      - pattern: srand(...)
+      - pattern: system(...)
+      - pattern: exit(...)

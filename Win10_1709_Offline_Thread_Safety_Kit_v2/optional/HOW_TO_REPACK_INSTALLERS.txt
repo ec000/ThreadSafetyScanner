@@ -1,0 +1,9 @@
+To make a single ZIP containing vendor installers after downloading them on an Internet-enabled staging PC:
+1. Place python-3.11.9-amd64.exe, ripgrep-14.1.1-x86_64-pc-windows-msvc.zip,
+   and cppcheck-2.18.0-x64-Setup.msi in this package's vendor_installers folder.
+2. In PowerShell on the staging PC, from the parent of the bundle directory:
+     Compress-Archive -Path .\Win10_1709_Offline_Code_Audit\* -DestinationPath .\Offline_With_Vendor_Installers.zip -Force
+3. Transfer by USB or an approved isolated media channel to Windows 10 1709.
+4. Check Authenticode signatures and SHA256 checksums against vendor-provided values.
+Semgrep is not required for the PowerShell scanner; its dependencies must be staged
+separately in a Python-ABI-matched wheelhouse if desired.

@@ -1,0 +1,3 @@
+This directory is intentionally empty of vendor binaries, because network retrieval
+was unavailable in the build environment. See TOOLS_MANIFEST.csv for official URLs.
+Do not treat this ZIP as containing vendor installers.
