@@ -17,10 +17,10 @@ SetCompressor /SOLID lzma
 CRCCheck force
 ShowInstDetails show
 ShowUninstDetails show
-VIProductVersion "0.1.0.0"
+VIProductVersion "0.1.0.1"
 VIAddVersionKey /LANG=2052 "ProductName" "ThreadSafetyScanner Offline"
 VIAddVersionKey /LANG=2052 "FileDescription" "完整离线安装候选包；Windows 1709 实机验证待完成"
-VIAddVersionKey /LANG=2052 "FileVersion" "0.1.0.0"
+VIAddVersionKey /LANG=2052 "FileVersion" "0.1.0.1"
 VIAddVersionKey /LANG=2052 "LegalCopyright" "ThreadSafetyScanner contributors"
 !define MUI_ABORTWARNING
 !define MUI_WELCOMEPAGE_TITLE "ThreadSafetyScanner 完整离线安装"
@@ -95,7 +95,8 @@ Function ValidateDirectory
     MessageBox MB_ICONSTOP "无法检查目标磁盘可用空间。请选择可访问的本地磁盘。"
     Abort
   ${EndIf}
-  System::Int64Op $1 ${REQUIRED_BYTES} <
+  FileWrite $InstallLog "Disk space: available=$1 bytes; required=${REQUIRED_BYTES} bytes$\r$\n"
+  System::Int64Op $1 < ${REQUIRED_BYTES}
   Pop $2
   ${If} $2 != 0
     MessageBox MB_ICONSTOP "目标磁盘空间不足。安装需要预留 ${REQUIRED_MB} MiB。"
@@ -106,7 +107,8 @@ Function ValidateDirectory
     MessageBox MB_ICONSTOP "无法检查系统临时目录所在磁盘的可用空间。"
     Abort
   ${EndIf}
-  System::Int64Op $1 ${REQUIRED_BYTES} <
+  FileWrite $InstallLog "Disk space: available=$1 bytes; required=${REQUIRED_BYTES} bytes$\r$\n"
+  System::Int64Op $1 < ${REQUIRED_BYTES}
   Pop $2
   ${If} $2 != 0
     MessageBox MB_ICONSTOP "系统临时目录所在磁盘空间不足。"

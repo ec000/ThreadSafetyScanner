@@ -104,6 +104,14 @@ def audit(stage=STAGE):
     details = {}
     if errors: return errors, details
     try:
+        # NSIS compiles plug-in calls without validating their argument grammar.
+        # System::Int64Op requires ARG1 OP ARG2, not ARG1 ARG2 OP.
+        binary_ops = {'+', '-', '*', '/', '%', '<<', '>>', '>>>', '|', '&', '^', '||', '&&', '<', '=', '>'}
+        for line in (stage/'Installer/ThreadSafetyScanner.nsi').read_text().splitlines():
+            tokens = line.split(';', 1)[0].split()
+            if tokens and tokens[0] == 'System::Int64Op':
+                valid = (len(tokens) == 4 and tokens[2] in binary_ops) or (len(tokens) == 3 and tokens[2] in {'~', '!'})
+                if not valid: errors.append('Invalid System::Int64Op argument order: ' + line.strip())
         dependencies = json.loads((stage/'Manifest/dependencies.json').read_text())
         if dependencies['semgrep']['status'] != 'unsupported': errors.append('Semgrep has no verified 1709 redistribution; must be unsupported')
         for name, expected_version in (('ripgrep', '13.0.0'), ('cppcheck', '2.10-tss1')):

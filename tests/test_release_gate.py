@@ -40,6 +40,11 @@ class PayloadGateTests(unittest.TestCase):
     def test_symlink_cannot_enter_payload(self):
         (self.stage/'Application/external.txt').symlink_to('/etc/hosts')
         with self.assertRaisesRegex(ValueError,'Symlinks'):gate.payload_files(self.stage)
+    def test_invalid_disk_space_comparison_blocks(self):
+        p=self.stage/'Installer/ThreadSafetyScanner.nsi'
+        text=p.read_text();self.assertEqual(2,text.count('System::Int64Op $1 < ${REQUIRED_BYTES}'))
+        p.write_text(text.replace('System::Int64Op $1 < ${REQUIRED_BYTES}', 'System::Int64Op $1 ${REQUIRED_BYTES} <', 1))
+        self.assertTrue(any('Invalid System::Int64Op argument order' in e for e in gate.audit(self.stage)[0]))
     def test_no_recursive_uninstall(self):
         files=gate.payload_files(self.stage);inc=Path(self.temp.name)/'payload.nsh';gate.make_include(files,inc,Path(self.temp.name)/gate.SETUP_NAME)
         text=inc.read_text();self.assertNotIn('RMDir /r',text);self.assertNotIn('Delete "$INSTDIR\\*',text)
