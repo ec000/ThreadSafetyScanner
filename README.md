@@ -41,4 +41,18 @@ C# 和 Cppcheck 已完成交叉编译；发布门禁自动测试通过，并已�
 - [测试报告](docs/TEST-REPORT.zh-CN.md)
 - [Windows 1709 验收清单](docs/WINDOWS1709-CHECKLIST.zh-CN.md)
 
-本仓库不提交下载缓存或生成的安装器。完整安装器位于本地 artifacts/candidate；从源码重建时，联网只发生在构建电脑预收集依赖阶段，目标电脑安装、扫描和导出不需要下载。参见构建说明中的缺失依赖阻断检查和精确目标系统验收门禁。
+## 直接下载安装包（无需编译）
+
+`git clone` 和 GitHub 的 Download ZIP 只获取源码，不含生成的 EXE。普通用户请从预发布附件下载完整安装包，无需安装编译工具或 Python：
+
+- [完整离线安装程序 ThreadSafetyScanner_Offline_Setup_x64.exe](https://github.com/ec000/ThreadSafetyScanner/releases/download/v0.1.0-candidate.1/ThreadSafetyScanner_Offline_Setup_x64.exe)
+- [全部交付文件 ThreadSafetyScanner_Offline_Delivery_x64.zip](https://github.com/ec000/ThreadSafetyScanner/releases/download/v0.1.0-candidate.1/ThreadSafetyScanner_Offline_Delivery_x64.zip)（安装包、源码、构建脚本、许可证、校验清单、中文说明及验证程序）
+- [候选版本说明和校验文件](https://github.com/ec000/ThreadSafetyScanner/releases/tag/v0.1.0-candidate.1)
+
+安装 EXE 大小：11,925,387 字节；SHA256：`2de7890d3de32fdf3fe7708bbda9c984652994c56d94573c1b2d8886de20dbdc`。
+
+**这是待 Windows 10 Pro 1709 Build 16299.15 实机验证的预发布候选，并非已通过最终验收的正式版。** 必需工具二进制已内置，但目标系统上的安装、真实扫描及报告导出仍待验证。
+
+将 EXE 复制到目标电脑，双击并完成安装向导，然后使用桌面快捷方式。目标电脑不需要自行编译或下载依赖。
+
+开发者需要修改并重建时，参见[构建说明](docs/BUILDING.zh-CN.md)。下载缓存和生成文件不提交到 Git；联网只发生在构建电脑预收集依赖阶段。
