@@ -1,0 +1,70 @@
+name: Offline installer release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: offline-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check build host
+        run: |
+          test "$(uname -m)" = arm64
+          command -v cmake
+          command -v clang
+          command -v make
+      - name: Collect SHA256-locked build inputs
+        run: python3 scripts/fetch_dependencies.py
+      - name: Provision private build tools
+        run: python3 scripts/bootstrap_build_tools.py
+      - name: Build application, engines and complete offline installer
+        run: python3 scripts/build_all.py
+      - name: Verify actual embedded installer payload
+        run: python3 scripts/verify_embedded_payload.py --sevenzip build/toolchain/7zip/7zz --installer artifacts/candidate/ThreadSafetyScanner_Offline_Setup_x64.exe
+      - name: Assemble and verify delivery
+        run: |
+          python3 scripts/assemble_delivery.py
+          cd artifacts/Deliverables
+          shasum -a 256 -c SHA256SUMS.txt
+      - name: Retain complete delivery
+        uses: actions/upload-artifact@v4
+        with:
+          name: ThreadSafetyScanner-offline-${{ github.sha }}
+          path: |
+            artifacts/Deliverables/
+            artifacts/ThreadSafetyScanner_Offline_Delivery_x64.zip
+            artifacts/DELIVERY-ZIP-SHA256.txt
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish complete candidate attachments
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 scripts/publish_candidate.py
+      - name: Retain failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-build-failure-${{ github.run_id }}
+          path: |
+            build/installer-build.log
+            build/payload-audit.json
+          if-no-files-found: ignore

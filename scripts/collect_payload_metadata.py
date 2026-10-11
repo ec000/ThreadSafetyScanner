@@ -55,12 +55,13 @@ Windows、.NET Framework、系统中文字体由目标操作系统提供，不�
         'dotnet-runtime-osx-arm64.tar.gz':'https://builds.dotnet.microsoft.com/dotnet/Runtime/8.0.11/dotnet-runtime-8.0.11-osx-arm64.tar.gz',
         'roslyn-4.12.0.zip':'https://api.nuget.org/v3-flatcontainer/microsoft.net.compilers.toolset/4.12.0/microsoft.net.compilers.toolset.4.12.0.nupkg',
         'net471-reference.zip':'https://api.nuget.org/v3-flatcontainer/microsoft.netframework.referenceassemblies.net471/1.0.3/microsoft.netframework.referenceassemblies.net471.1.0.3.nupkg',
-        'scons.tar.gz':'https://files.pythonhosted.org/packages/source/S/SCons/scons-4.8.1.tar.gz'
+        'scons.tar.gz':'https://files.pythonhosted.org/packages/source/S/SCons/scons-4.8.1.tar.gz',
+        '7zip-mac.tar.xz':'https://www.7-zip.org/a/7z2600-mac.tar.xz'
     }
     lock = []
     for name, url in inputs.items():
         path = ROOT/'vendor/downloads'/name
-        lock.append({'file':name, 'url':url, 'sha256':hashlib.sha256(path.read_bytes()).hexdigest(), 'sizeBytes':path.stat().st_size, 'usage':'inspection-only-not-shipped' if name.endswith('.msi') else 'build-input; only explicit collected payload is shipped'})
+        lock.append({'file':name, 'url':url, 'sha256':hashlib.sha256(path.read_bytes()).hexdigest(), 'sizeBytes':path.stat().st_size, 'usage':'inspection-only-not-shipped' if name.endswith('.msi') or name=='7zip-mac.tar.xz' else 'build-input; only explicit collected payload is shipped'})
     lock_path = ROOT/'vendor/dependencies.lock.json'
     if lock_path.is_file():
         expected = {i['file']:i['sha256'] for i in json.loads(lock_path.read_text())}
@@ -85,7 +86,7 @@ Windows、.NET Framework、系统中文字体由目标操作系统提供，不�
         for path in sorted(patched.rglob('*')):
             if path.is_file(): z.write(path,path.relative_to(patched.parent).as_posix())
     with zipfile.ZipFile(licenses/'ThreadSafetyScanner-source.zip','w',zipfile.ZIP_DEFLATED) as z:
-        for directory in ('src','scripts','tests','docs','vendor/patches','OfflineRelease/Rules','OfflineRelease/Installer'):
+        for directory in ('.github','src','scripts','tests','docs','vendor/patches','OfflineRelease/Rules','OfflineRelease/Installer'):
             for path in sorted((ROOT/directory).rglob('*')):
                 if path.is_file() and '__pycache__' not in path.parts and path.suffix != '.pyc' and 'results' not in path.parts: z.write(path,path.relative_to(ROOT).as_posix())
         for name in ('README.md','CHANGELOG.md','LICENSE','vendor/dependencies.lock.json'): z.write(ROOT/name,name)

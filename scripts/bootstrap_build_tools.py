@@ -22,7 +22,7 @@ def main():
                 path=(tool/dest/info.filename).resolve()
                 if not path.is_relative_to((tool/dest).resolve()): raise ValueError('Unsafe ZIP path')
             z.extractall(tool/dest)
-    for archive,dest in [('dotnet-runtime-osx-arm64.tar.gz',tool/'dotnet'),('nsis-3.10-src.tar.bz2',tool/'nsis-source'),('scons.tar.gz',tool/'scons'),('llvm-mingw-20231128.tar.xz',tool)]:
+    for archive,dest in [('7zip-mac.tar.xz',tool/'7zip'),('dotnet-runtime-osx-arm64.tar.gz',tool/'dotnet'),('nsis-3.10-src.tar.bz2',tool/'nsis-source'),('scons.tar.gz',tool/'scons'),('llvm-mingw-20231128.tar.xz',tool)]:
         with tarfile.open(ROOT/'vendor/downloads'/archive) as t: t.extractall(dest,filter='data')
     with zipfile.ZipFile(ROOT/'vendor/downloads/cppcheck-2.10-source.zip') as z: z.extractall(ROOT/'build/cppcheck-source')
     dest=ROOT/'OfflineRelease/Tools/ripgrep';dest.mkdir(parents=True,exist_ok=True)

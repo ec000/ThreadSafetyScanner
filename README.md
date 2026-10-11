@@ -56,3 +56,11 @@ candidate.2 修正有足够空间仍提示空间不足的安装错误。实际�
 将 EXE 复制到目标电脑，双击并完成安装向导，然后使用桌面快捷方式。目标电脑不需要自行编译或下载依赖。
 
 开发者需要修改并重建时，参见[构建说明](docs/BUILDING.zh-CN.md)。下载缓存和生成文件不提交到 Git；联网只发生在构建电脑预收集依赖阶段。
+
+## 后续版本自动上传
+
+已配置 [GitHub Actions 离线构建发布流程](.github/workflows/offline-release.yml)。后续推送 `v*` 版本标签，会自动收集并校验依赖、编译、执行门禁测试、解包验证安装器、生成完整交付 ZIP，再上传 GitHub Release 附件。附件上传完整前保持草稿，成功后以 **Pre-release** 公开；失败不会发布为成功版本，也不覆盖已有公开附件。
+
+例如发布新的候选：`git tag v0.1.0-candidate.3`，然后 `git push origin v0.1.0-candidate.3`。仅推送 main 不会产生新 Release。也可在 Actions 页面手动运行构建检查，手动运行只保存构建产物，不发布新版本。
+
+Windows 1709 实机验收仍是独立步骤；自动构建成功不会将候选提升为已验证正式版。详见[自动发布说明](docs/AUTOMATIC-RELEASE.zh-CN.md)。

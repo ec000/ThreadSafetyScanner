@@ -17,7 +17,7 @@ def main():
     for path in (ROOT/'docs').glob('*'):
         if path.is_file():shutil.copy2(path,dest/path.name)
     with zipfile.ZipFile(dest/'BuildScripts.zip','w',zipfile.ZIP_DEFLATED) as z:
-        for directory in ('scripts','vendor/patches','OfflineRelease/Installer'):
+        for directory in ('.github','scripts','vendor/patches','OfflineRelease/Installer'):
             for path in sorted((ROOT/directory).rglob('*')):
                 if path.is_file() and '__pycache__' not in path.parts:z.write(path,path.relative_to(ROOT).as_posix())
         z.write(ROOT/'vendor/dependencies.lock.json','vendor/dependencies.lock.json')

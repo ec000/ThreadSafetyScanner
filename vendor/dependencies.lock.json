@@ -75,5 +75,12 @@
     "sha256": "5b641357904d2f56f7bfdbb37e165ab996b6143c948b9df0efc7305f54949daa",
     "sizeBytes": 3244174,
     "usage": "build-input; only explicit collected payload is shipped"
+  },
+  {
+    "file": "7zip-mac.tar.xz",
+    "url": "https://www.7-zip.org/a/7z2600-mac.tar.xz",
+    "sha256": "8a2ea734b52b2cb7d568f5f13e0a137bea3004b221bdbee53197728a9051c849",
+    "sizeBytes": 1850044,
+    "usage": "build-host installer extraction verification only; not shipped"
   }
 ]
