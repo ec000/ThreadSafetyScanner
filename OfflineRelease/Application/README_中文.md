@@ -85,3 +85,5 @@ ThreadSafetyScanner.exe --validate-reports --directory "D:\审查报告" --outpu
 ```
 
 `--engines` 可选 rg、cppcheck、both。退出码 0 表示该自动化操作通过；1 表示启动/参数/导出错误；2 表示扫描或自测未完整通过。`--self-test` 的报告结构通过不代表人工打开与系统兼容性验收完成。
+
+应用图标：蓝色盾牌、代码括号及绿色勾选标记。程序窗口、安装/卸载程序、桌面与开始菜单快捷方式统一使用该图标；ICO 提供 16–256 像素多种尺寸。

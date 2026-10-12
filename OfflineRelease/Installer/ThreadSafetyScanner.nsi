@@ -23,6 +23,8 @@ VIAddVersionKey /LANG=2052 "FileDescription" "完整离线安装候选包；Wind
 VIAddVersionKey /LANG=2052 "FileVersion" "0.1.0.1"
 VIAddVersionKey /LANG=2052 "LegalCopyright" "ThreadSafetyScanner contributors"
 !define MUI_ABORTWARNING
+!define MUI_ICON "..\Application\AppIcon.ico"
+!define MUI_UNICON "..\Application\AppIcon.ico"
 !define MUI_WELCOMEPAGE_TITLE "ThreadSafetyScanner 完整离线安装"
 !define MUI_WELCOMEPAGE_TEXT "安装程序内置 GUI、ripgrep、Cppcheck、规则及运行依赖，不访问互联网。$\r$\n$\r$\n最低系统：Windows 10 1709 x64，.NET Framework 4.7.1。$\r$\n$\r$\n此构建为验收候选，目标 Build 16299.15 实机验证状态见随包测试报告。$\r$\n$\r$\n正常扫描无需管理员权限。"
 !insertmacro MUI_PAGE_WELCOME
@@ -149,12 +151,13 @@ Section "完整离线安装" SEC_MAIN
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ThreadSafetyScanner" "DisplayVersion" "0.1.0"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ThreadSafetyScanner" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ThreadSafetyScanner" "InstallLocation" "$INSTDIR"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ThreadSafetyScanner" "DisplayIcon" '"$INSTDIR\ThreadSafetyScanner.exe",0'
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ThreadSafetyScanner" "NoModify" 1
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\ThreadSafetyScanner" "NoRepair" 1
   CreateDirectory "$SMPROGRAMS\ThreadSafetyScanner"
-  CreateShortcut "$SMPROGRAMS\ThreadSafetyScanner\ThreadSafetyScanner.lnk" "$INSTDIR\ThreadSafetyScanner.exe"
+  CreateShortcut "$SMPROGRAMS\ThreadSafetyScanner\ThreadSafetyScanner.lnk" "$INSTDIR\ThreadSafetyScanner.exe" "" "$INSTDIR\ThreadSafetyScanner.exe" 0
   CreateShortcut "$SMPROGRAMS\ThreadSafetyScanner\卸载.lnk" "$INSTDIR\Uninstall.exe"
-  CreateShortcut "$DESKTOP\ThreadSafetyScanner.lnk" "$INSTDIR\ThreadSafetyScanner.exe"
+  CreateShortcut "$DESKTOP\ThreadSafetyScanner.lnk" "$INSTDIR\ThreadSafetyScanner.exe" "" "$INSTDIR\ThreadSafetyScanner.exe" 0
   FileWrite $InstallLog "SUCCESS: installed $INSTDIR; user initialization happens at first normal-user launch$\r$\n"
   FileClose $InstallLog
 SectionEnd

@@ -58,3 +58,7 @@ python3 scripts/verify_embedded_payload.py --sevenzip <7zz的完整路径> --ins
 Licenses 内附新应用源码、Cppcheck 原始源码、修改后对应源码、NSIS 源码及所有组件许可。静态链接的 simplecpp 可与 Cppcheck 完整对应源码一起重编译；LLVM/MinGW 所用许可文本同时提供。可依照脚本修改并重编译，再重建 SHA256 清单；完整性校验不限制 GPL/LGPL 允许的改动、替换与调试。
 
 Cppcheck MSI 只用于审查原厂分发，**未作为运行依赖内置**；最终使用自主构建的静态 CLI，不打包 Qt GUI、Python addons 或微软可再分发 DLL。
+
+## 应用图标资源
+
+原创源文件为 `src/ThreadSafetyScanner/Assets/AppIcon.svg`，另附预览 PNG 和含九种尺寸的 ICO。构建直接使用已提交的 ICO，无需在构建机或目标机安装图像处理工具。`build_application.py` 和 Windows csproj 同时嵌入 Win32 与托管图标资源；构建脚本将 ICO 收集到 Application，供 NSIS 安装/卸载程序使用。修改 SVG 后须重新导出 ICO，再执行应用编译及完整载荷重建。

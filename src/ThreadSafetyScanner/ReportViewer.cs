@@ -23,7 +23,7 @@ namespace ThreadSafetyScanner
         {
             string ext = Path.GetExtension(path).TrimStart('.').ToLowerInvariant();
             if (!Exporter.Formats.Contains(ext)) throw new InvalidDataException("仅支持本应用导出的报告格式。");
-            var form = new Form { Text = "离线报告查看 — " + Path.GetFileName(path), Width = 1100, Height = 760, StartPosition = FormStartPosition.CenterParent };
+            var form = new Form { Icon = AppIcon.Value, Text = "离线报告查看 — " + Path.GetFileName(path), Width = 1100, Height = 760, StartPosition = FormStartPosition.CenterParent };
             if (ext == "xlsx")
             {
                 using (var zip = ZipFile.OpenRead(path))

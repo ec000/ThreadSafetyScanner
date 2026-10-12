@@ -4,6 +4,7 @@
   <ItemGroup>
     <Reference Include="System"/><Reference Include="System.Core"/><Reference Include="System.Data"/><Reference Include="System.Drawing"/><Reference Include="System.Windows.Forms"/><Reference Include="System.Xml"/><Reference Include="System.Xml.Linq"/><Reference Include="System.Web"/><Reference Include="System.Web.Extensions"/><Reference Include="System.IO.Compression"/><Reference Include="System.IO.Compression.FileSystem"/>
   </ItemGroup>
-  <ItemGroup><Compile Include="*.cs"/><None Include="App.config"/><None Include="app.manifest"/></ItemGroup>
+  <PropertyGroup><ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon></PropertyGroup>
+  <ItemGroup><Compile Include="*.cs"/><None Include="App.config"/><None Include="app.manifest"/><None Include="Assets\AppIcon.svg"/><None Include="Assets\AppIcon.png"/><EmbeddedResource Include="Assets\AppIcon.ico"><LogicalName>ThreadSafetyScanner.AppIcon.ico</LogicalName></EmbeddedResource></ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
 </Project>

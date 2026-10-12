@@ -46,11 +46,11 @@ C# 和 Cppcheck 已完成交叉编译；发布门禁自动测试通过，并已�
 
 `git clone` 和 GitHub 的 Download ZIP 只获取源码，不含生成的 EXE。普通用户请从预发布附件下载完整安装包，无需安装编译工具或 Python：
 
-- [完整离线安装程序 ThreadSafetyScanner_Offline_Setup_x64.exe](https://github.com/ec000/ThreadSafetyScanner/releases/download/v0.1.0-candidate.4/ThreadSafetyScanner_Offline_Setup_x64.exe)
-- [全部交付文件 ThreadSafetyScanner_Offline_Delivery_x64.zip](https://github.com/ec000/ThreadSafetyScanner/releases/download/v0.1.0-candidate.4/ThreadSafetyScanner_Offline_Delivery_x64.zip)（安装包、源码、构建脚本、许可证、校验清单、中文说明及验证程序）
-- [候选版本说明和校验文件](https://github.com/ec000/ThreadSafetyScanner/releases/tag/v0.1.0-candidate.4)
+- [完整离线安装程序 ThreadSafetyScanner_Offline_Setup_x64.exe](https://github.com/ec000/ThreadSafetyScanner/releases/download/v0.1.0-candidate.5/ThreadSafetyScanner_Offline_Setup_x64.exe)
+- [全部交付文件 ThreadSafetyScanner_Offline_Delivery_x64.zip](https://github.com/ec000/ThreadSafetyScanner/releases/download/v0.1.0-candidate.5/ThreadSafetyScanner_Offline_Delivery_x64.zip)（安装包、源码、构建脚本、许可证、校验清单、中文说明及验证程序）
+- [候选版本说明和校验文件](https://github.com/ec000/ThreadSafetyScanner/releases/tag/v0.1.0-candidate.5)
 
-candidate.4 修复 Cppcheck 在规范化 SMB/UNC 文件名时因父目录元数据探测被拦截而终止的问题；保留 candidate.3 的 SMB 扫描、大目录提示及按钮换行，以及 candidate.2 的磁盘空间误判修复。实际大小和 SHA256 见预发布页面附件。
+candidate.5 增加统一应用图标，覆盖程序 EXE、主窗口、规则管理、报告查看、安装/卸载程序和快捷方式；保留 candidate.4 的 Cppcheck SMB 父目录探测修复，以及此前的大目录提示、按钮换行和安装磁盘空间修复。实际大小和 SHA256 见预发布页面附件。
 
 **这是待 Windows 10 Pro 1709 Build 16299.15 实机验证的预发布候选，并非已通过最终验收的正式版。** 必需工具二进制已内置，但目标系统上的安装、真实扫描及报告导出仍待验证。
 
@@ -62,6 +62,6 @@ candidate.4 修复 Cppcheck 在规范化 SMB/UNC 文件名时因父目录元数�
 
 已配置 [GitHub Actions 离线构建发布流程](.github/workflows/offline-release.yml)。后续推送 `v*` 版本标签，会自动收集并校验依赖、编译、执行门禁测试、解包验证安装器、生成完整交付 ZIP，再上传 GitHub Release 附件。附件上传完整前保持草稿，成功后以 **Pre-release** 公开；失败不会发布为成功版本，也不覆盖已有公开附件。
 
-例如发布新的候选：`git tag v0.1.0-candidate.4`，然后 `git push origin v0.1.0-candidate.4`。仅推送 main 不会产生新 Release。也可在 Actions 页面手动运行构建检查，手动运行只保存构建产物，不发布新版本。
+例如发布新的候选：`git tag v0.1.0-candidate.5`，然后 `git push origin v0.1.0-candidate.5`。仅推送 main 不会产生新 Release。也可在 Actions 页面手动运行构建检查，手动运行只保存构建产物，不发布新版本。
 
 Windows 1709 实机验收仍是独立步骤；自动构建成功不会将候选提升为已验证正式版。详见[自动发布说明](docs/AUTOMATIC-RELEASE.zh-CN.md)。

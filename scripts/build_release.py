@@ -19,6 +19,7 @@ SYSTEM_DLLS = set(('kernel32.dll ntdll.dll user32.dll gdi32.dll advapi32.dll she
                   'msvcrt.dll ucrtbase.dll mscoree.dll dbghelp.dll setupapi.dll').split())
 REQUIRED = [
     'Application/ThreadSafetyScanner.exe', 'Application/ThreadSafetyScanner.exe.config',
+    'Application/AppIcon.ico',
     'Tools/ripgrep/rg.exe', 'Tools/cppcheck/cppcheck.exe', 'Tools/cppcheck/cfg/std.cfg',
     'Tools/cppcheck/platforms/mips32.xml', 'Rules/rules.json', 'Runtime/README.txt',
     'Licenses/GPL-3.0.txt', 'Licenses/ripgrep/COPYING', 'Licenses/ripgrep/LICENSE-MIT',

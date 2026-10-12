@@ -23,11 +23,14 @@ def main():
     rsp = ROOT/'build/application.rsp'
     rsp.parent.mkdir(exist_ok=True)
     options = ['/nostdlib+', '/langversion:5', '/target:winexe', '/platform:x64', '/optimize+', '/deterministic+', '/utf8output', '/out:"'+str(output/'ThreadSafetyScanner.exe')+'"', '/win32manifest:"'+str(source/'app.manifest')+'"']
+    icon = source/'Assets/AppIcon.ico'
+    options += ['/win32icon:"'+str(icon)+'"', '/resource:"'+str(icon)+'",ThreadSafetyScanner.AppIcon.ico']
     options += ['/reference:"'+str(f)+'"' for f in refs]
     options += ['"'+str(f)+'"' for f in sorted(source.glob('*.cs'))]
     rsp.write_text('\n'.join(options)+'\n')
     subprocess.run([str(a.dotnet.resolve()), str(a.csc.resolve()), '/noconfig', '@'+str(rsp)], cwd=ROOT, check=True)
     shutil.copy2(source/'App.config', output/'ThreadSafetyScanner.exe.config')
+    shutil.copy2(icon, output/'AppIcon.ico')
     print('Application compiled for .NET Framework 4.7.1/x64. Windows execution pending.')
 
 if __name__ == '__main__': main()

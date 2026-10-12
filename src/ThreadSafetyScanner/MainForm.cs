@@ -30,6 +30,7 @@ namespace ThreadSafetyScanner
         private bool busy;
         public MainForm()
         {
+            Icon = AppIcon.Value;
             Text = "ThreadSafetyScanner — 离线线程安全扫描"; Width = 1280; Height = 820; MinimumSize = new Size(900, 600); StartPosition = FormStartPosition.CenterScreen;
             AutoScaleMode = AutoScaleMode.Dpi; Font = new Font("Microsoft YaHei UI", 9);
             var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5 };
@@ -131,6 +132,7 @@ namespace ThreadSafetyScanner
     {
         public RulesForm()
         {
+            Icon = AppIcon.Value;
             Text = "规则管理 — 只修改当前用户配置"; Width = 1100; Height = 550;
             var rules = new BindingList<Rule>(RuleStore.Load());
             var grid = new DataGridView { Dock = DockStyle.Fill, DataSource = rules, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells, AllowUserToAddRows = true, AllowUserToDeleteRows = true };
