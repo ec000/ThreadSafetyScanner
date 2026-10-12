@@ -8,10 +8,10 @@
     "win1709Execution": "pending"
   },
   "cppcheck": {
-    "version": "2.10-tss2",
+    "version": "2.10-tss3",
     "path": "Tools/cppcheck/cppcheck.exe",
-    "sha256": "5dbd516d1e99108da6835cb2ed8b32945ca517e8fd8291ca1c0392194fa6c74c",
-    "sizeBytes": 4401152,
+    "sha256": "e397ca4fdfc1dcbe7af9b84ef3a5351a8cb6c1f8e4c51781f540394fb93eed83",
+    "sizeBytes": 4406272,
     "license": "GPL-3.0-or-later",
     "win1709Execution": "pending"
   },

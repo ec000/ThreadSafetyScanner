@@ -3,6 +3,21 @@
 #pragma once
 #include <string>
 #include <cwctype>
+#include <stdexcept>
+
+class TssPathDenied : public std::runtime_error {
+public:
+    explicit TssPathDenied(const std::string& message) : std::runtime_error(message) {}
+};
+
+// Filename normalization probes ancestors (including UNC server/share names).
+// Refuse the probe without terminating the analyzer or performing out-of-scope I/O.
+// Actual file opens still throw; only metadata APIs use this adapter.
+template<class Lookup, class Result>
+inline Result tss_metadata_lookup(Lookup lookup, Result denied) {
+    try { return lookup(); }
+    catch (const TssPathDenied&) { return denied; }
+}
 
 inline std::wstring tss_normalize_separators(std::wstring path) {
     for (wchar_t& c : path) if (c == L'/') c = L'\\';

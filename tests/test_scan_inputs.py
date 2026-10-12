@@ -5,11 +5,35 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class ScanInputTests(unittest.TestCase):
+    def test_cppcheck_upstream_windows_probes(self):
+        compiler = shutil.which('clang++') or shutil.which('g++')
+        source_zip = ROOT / 'vendor/downloads/cppcheck-2.10-source.zip'
+        if not compiler or not source_zip.is_file():
+            self.skipTest('Host compiler or locked upstream Cppcheck source unavailable')
+        with tempfile.TemporaryDirectory() as temp:
+            directory = Path(temp)
+            with zipfile.ZipFile(source_zip) as archive:
+                for name in ('simplecpp.cpp', 'simplecpp.h'):
+                    entry = next(n for n in archive.namelist() if n.endswith('/externals/simplecpp/' + name))
+                    (directory / name).write_bytes(archive.read(entry))
+            args = [compiler, '-std=c++11', '-DSIMPLECPP_WINDOWS', '-I', str(ROOT / 'tests/cppcheck_windows_stub'),
+                    '-I', str(ROOT / 'vendor/patches'), '-I', str(directory), str(directory / 'simplecpp.cpp'),
+                    str(ROOT / 'tests/cppcheck_windows_probe_test.cpp')]
+            legacy = directory / 'legacy-probes'
+            subprocess.run(args + ['-DTSS_TEST_LEGACY_PROBE', '-o', str(legacy)], check=True)
+            failure = subprocess.run([str(legacy)], capture_output=True, text=True)
+            self.assertEqual(failure.returncode, 1)
+            self.assertIn('network access outside selected source root', failure.stderr)
+            fixed = directory / 'fixed-probes'
+            subprocess.run(args + ['-o', str(fixed)], check=True)
+            subprocess.run([str(fixed)], check=True)
+
     def test_cppcheck_network_scope(self):
         compiler = shutil.which('clang++') or shutil.which('g++')
         if not compiler:

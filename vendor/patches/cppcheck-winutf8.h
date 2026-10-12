@@ -40,12 +40,12 @@ inline std::string tss_utf8(const wchar_t* s) {
 }
 inline std::wstring tss_path(const char* s, bool allowNetworkRead = true) {
     std::wstring w = tss_wide(s);
-    if (tss_device_path(w)) throw std::runtime_error("Source policy: device filename denied");
+    if (tss_device_path(w)) throw TssPathDenied(std::string("Source policy: device filename denied: ") + s);
     wchar_t full[32768];
     DWORD n = GetFullPathNameW(w.c_str(), 32768, full, nullptr);
     if (!n || n >= 32768) throw std::runtime_error("Offline policy: cannot normalize filename");
     std::wstring path = tss_normalize_separators(full);
-    if (tss_device_path(path)) throw std::runtime_error("Source policy: device filename denied");
+    if (tss_device_path(path)) throw TssPathDenied(std::string("Source policy: device filename denied: ") + s);
     bool unc = path.size() >= 2 && path[0] == L'\\' && path[1] == L'\\';
     if (!unc && (path.size() < 3 || path[1] != L':')) throw std::runtime_error("Source policy: absolute filename required");
     bool network = unc || GetDriveTypeW(path.substr(0, 3).c_str()) == DRIVE_REMOTE;
@@ -54,13 +54,13 @@ inline std::wstring tss_path(const char* s, bool allowNetworkRead = true) {
         DWORD size = GetEnvironmentVariableW(L"TSS_SOURCE_ROOT", selected, 32768);
         DWORD count = size && size < 32768 && !tss_device_path(selected) ? GetFullPathNameW(selected, 32768, normalized, nullptr) : 0;
         if (!allowNetworkRead || !count || count >= 32768 || !tss_network_read_allowed(path, normalized))
-            throw std::runtime_error("Source policy: network access outside selected source root or network write denied");
+            throw TssPathDenied(std::string("Source policy: network access outside selected source root or network write denied; path=") + tss_utf8(path.c_str()) + "; sourceRoot=" + (size && size < 32768 ? tss_utf8(selected) : "<unset>") + "; access=" + (allowNetworkRead ? "read" : "write"));
     }
     // Inspect each directory prefix, retaining the reparse-point restriction for local and SMB sources.
     std::size_t first = 3;
     if (unc) {
         std::size_t server = path.find(L'\\', 2);
-        if (server == std::wstring::npos) throw std::runtime_error("Source policy: UNC share required");
+        if (server == std::wstring::npos) throw TssPathDenied(std::string("Source policy: UNC share required: ") + s);
         std::size_t share = path.find(L'\\', server + 1);
         first = share == std::wstring::npos ? path.size() : share;
     }
@@ -68,7 +68,7 @@ inline std::wstring tss_path(const char* s, bool allowNetworkRead = true) {
         if (i != path.size() && path[i] != L'\\' && path[i] != L'/') continue;
         DWORD a = GetFileAttributesW(path.substr(0, i).c_str());
         if (a != INVALID_FILE_ATTRIBUTES && (a & FILE_ATTRIBUTE_REPARSE_POINT))
-            throw std::runtime_error("Source policy: reparse-point filename denied");
+            throw TssPathDenied(std::string("Source policy: reparse-point filename denied: ") + s);
     }
     return path;
 }
@@ -107,14 +107,16 @@ inline void tss_find_copy(const WIN32_FIND_DATAW& w, TssFindData* a) {
     std::strcpy(a->cAlternateFileName, tss_utf8(w.cAlternateFileName).c_str());
 }
 inline HANDLE tss_find_first(const char* p, TssFindData* a) {
-    WIN32_FIND_DATAW w; HANDLE h = FindFirstFileW(tss_path(p).c_str(), &w);
+    WIN32_FIND_DATAW w;
+    HANDLE h = tss_metadata_lookup([&]() { return FindFirstFileW(tss_path(p).c_str(), &w); }, INVALID_HANDLE_VALUE);
     if (h != INVALID_HANDLE_VALUE) tss_find_copy(w, a); return h;
 }
 inline BOOL tss_find_next(HANDLE h, TssFindData* a) {
     WIN32_FIND_DATAW w; BOOL r = FindNextFileW(h, &w); if (r) tss_find_copy(w, a); return r;
 }
 inline HANDLE tss_find_ex(const char* p, FINDEX_INFO_LEVELS i, void* a, FINDEX_SEARCH_OPS o, void* f, DWORD flags) {
-    WIN32_FIND_DATAW w; HANDLE h = FindFirstFileExW(tss_path(p).c_str(), i, &w, o, f, flags);
+    WIN32_FIND_DATAW w;
+    HANDLE h = tss_metadata_lookup([&]() { return FindFirstFileExW(tss_path(p).c_str(), i, &w, o, f, flags); }, INVALID_HANDLE_VALUE);
     if (h != INVALID_HANDLE_VALUE) tss_find_copy(w, static_cast<TssFindData*>(a)); return h;
 }
 inline DWORD tss_module(HMODULE m, char* b, DWORD n) {
@@ -137,6 +139,6 @@ inline char* tss_getcwd(char* b, int n) {
 #define FindNextFileA tss_find_next
 #define FindFirstFileExA tss_find_ex
 #define GetModuleFileNameA tss_module
-#define PathIsDirectoryA(p) PathIsDirectoryW(tss_path(p).c_str())
-#define PathFileExistsA(p) PathFileExistsW(tss_path(p).c_str())
+#define PathIsDirectoryA(p) tss_metadata_lookup([&]() { return PathIsDirectoryW(tss_path(p).c_str()); }, static_cast<BOOL>(0))
+#define PathFileExistsA(p) tss_metadata_lookup([&]() { return PathFileExistsW(tss_path(p).c_str()); }, static_cast<BOOL>(0))
 #define _getcwd tss_getcwd

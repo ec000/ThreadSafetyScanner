@@ -22,7 +22,7 @@
 - 建议至少 512 MiB 可用内存；大项目需要更多内存。安装器按实际解压载荷计算两倍文件大小加 100 MiB 的可用空间要求，并检查目标磁盘及临时目录所在磁盘。
 - C# WinForms 应用，未使用第三方托管 DLL。
 - `Tools\ripgrep\rg.exe`：ripgrep 13.0.0 官方 x64 MSVC 静态分发。
-- `Tools\cppcheck\cppcheck.exe`：Cppcheck 2.10-tss2 x64 静态构建；附完整 cfg/platforms 数据。修改了 Windows UTF-8 路径接口、SMB 只读访问范围和构建兼容性，附原始及修改后源码。
+- `Tools\cppcheck\cppcheck.exe`：Cppcheck 2.10-tss3 x64 静态构建；附完整 cfg/platforms 数据。修改了 Windows UTF-8 路径接口、SMB 只读访问范围和构建兼容性，附原始及修改后源码。
 - 不部署 VC++ Runtime/Qt/Python/Rust/现代 .NET 运行时。C++ 运行时静态链接；系统 API 的目标版本可用性仍须实测。
 - Semgrep：**不支持**，未打包，无 Build 16299.15 的完整离线兼容性证据。
 - 28 条内置函数候选规则迁移自用户提供的 v2，许可证和第三方源码均位于 `Licenses\`。

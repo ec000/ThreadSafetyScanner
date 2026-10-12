@@ -114,7 +114,7 @@ def audit(stage=STAGE):
                 if not valid: errors.append('Invalid System::Int64Op argument order: ' + line.strip())
         dependencies = json.loads((stage/'Manifest/dependencies.json').read_text())
         if dependencies['semgrep']['status'] != 'unsupported': errors.append('Semgrep has no verified 1709 redistribution; must be unsupported')
-        for name, expected_version in (('ripgrep', '13.0.0'), ('cppcheck', '2.10-tss2')):
+        for name, expected_version in (('ripgrep', '13.0.0'), ('cppcheck', '2.10-tss3')):
             item = dependencies[name]
             if item['version'] != expected_version: errors.append(f'Unreviewed tool version: {name}')
             if sha256(stage/item['path']) != item['sha256']: errors.append(f'Dependency hash mismatch: {name}')
