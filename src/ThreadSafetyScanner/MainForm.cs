@@ -13,7 +13,7 @@ namespace ThreadSafetyScanner
 {
     internal sealed class MainForm : Form
     {
-        private readonly TextBox source = new TextBox { Width = 520 };
+        private readonly TextBox source = new TextBox { Anchor = AnchorStyles.Left | AnchorStyles.Right };
         private readonly CheckBox rg = new CheckBox { Text = "ripgrep 快速扫描", Checked = true, AutoSize = true };
         private readonly CheckBox cpp = new CheckBox { Text = "Cppcheck 深度扫描", Checked = true, AutoSize = true };
         private readonly ComboBox platform = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 90 };
@@ -33,9 +33,13 @@ namespace ThreadSafetyScanner
             Icon = AppIcon.Value;
             Text = "ThreadSafetyScanner — 离线线程安全扫描"; Width = 1280; Height = 820; MinimumSize = new Size(900, 600); StartPosition = FormStartPosition.CenterScreen;
             AutoScaleMode = AutoScaleMode.Dpi; Font = new Font("Microsoft YaHei UI", 9);
-            var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5 };
+            var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5, Padding = new Padding(8, 6, 8, 0), Margin = Padding.Empty };
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             layout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); layout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); layout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); layout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            var pathRow = Row(); pathRow.Controls.Add(new Label { Text = "源码目录（本地 / SMB）", AutoSize = true, Padding = new Padding(0, 7, 0, 0) }); pathRow.Controls.Add(source);
+            var pathRow = new TableLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, ColumnCount = 3, RowCount = 1, Margin = Padding.Empty, Padding = new Padding(0, 2, 0, 2) };
+            pathRow.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize)); pathRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100)); pathRow.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            pathRow.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            pathRow.Controls.Add(new Label { Text = "源码目录（本地 / SMB）", AutoSize = true }, 0, 0); pathRow.Controls.Add(source, 1, 0);
             AddButton(pathRow, "选择目录…", delegate { using (var d = new FolderBrowserDialog()) { if (d.ShowDialog(this) == DialogResult.OK) source.Text = d.SelectedPath; } });
             var scanRow = Row(); scanRow.Controls.Add(rg); scanRow.Controls.Add(cpp); scanRow.Controls.Add(new Label { Text = "源码目标平台", AutoSize = true }); scanRow.Controls.Add(platform);
             platform.Items.AddRange(new object[] { "win64", "unix32", "unix64" }); platform.SelectedIndex = 0;
@@ -52,15 +56,33 @@ namespace ThreadSafetyScanner
             category.Items.Add("全部分类"); category.SelectedIndex = 0;
             filters.Controls.Add(priority); filters.Controls.Add(engine); filters.Controls.Add(category);
             foreach (var filter in new[] { priority, engine, category }) filter.SelectedIndexChanged += delegate { Filter(); };
-            var split = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Horizontal, SplitterDistance = 350 }; split.Panel1.Controls.Add(grid); split.Panel2.Controls.Add(preview);
+            foreach (Control row in new Control[] { pathRow, scanRow, actionsRow, filters }) AlignRow(row);
+            source.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            var split = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Horizontal, SplitterDistance = 350, Margin = new Padding(0, 4, 0, 0) }; split.Panel1.Controls.Add(grid); split.Panel2.Controls.Add(preview);
             layout.Controls.Add(pathRow, 0, 0); layout.Controls.Add(scanRow, 0, 1); layout.Controls.Add(actionsRow, 0, 2); layout.Controls.Add(filters, 0, 3); layout.Controls.Add(split, 0, 4);
             Controls.Add(layout); Controls.Add(status);
             start.Click += async delegate { await StartScan(); }; cancel.Click += delegate { if (cancellation != null) cancellation.Cancel(); };
             grid.SelectionChanged += delegate { Preview(); };
             FormClosing += delegate(object sender, FormClosingEventArgs e) { if (busy) { if (cancellation != null) cancellation.Cancel(); e.Cancel = true; status.Text = "正在取消任务，请等待进程退出后再关闭。"; } };
         }
-        private static FlowLayoutPanel Row() { return new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, WrapContents = true, Padding = new Padding(8) }; }
-        private void AddButton(FlowLayoutPanel panel, string text, Action click) { var b = new Button { Text = text, AutoSize = true }; b.Click += delegate { Guard(click); }; panel.Controls.Add(b); }
+        private static FlowLayoutPanel Row() { return new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, WrapContents = true, Margin = Padding.Empty, Padding = new Padding(0, 2, 0, 2) }; }
+        private static void AlignRow(Control row)
+        {
+            foreach (Control control in row.Controls)
+            {
+                // With no vertical anchor, both flow and table rows center controls of different heights.
+                control.Anchor = AnchorStyles.Left;
+                control.Margin = new Padding(0, 1, 8, 1);
+                var label = control as Label;
+                if (label != null) { label.Padding = Padding.Empty; label.TextAlign = ContentAlignment.MiddleLeft; }
+                var check = control as CheckBox;
+                if (check != null) { check.TextAlign = ContentAlignment.MiddleLeft; check.CheckAlign = ContentAlignment.MiddleLeft; }
+                var button = control as Button;
+                if (button != null) { button.AutoSizeMode = AutoSizeMode.GrowAndShrink; button.MinimumSize = new Size(76, 26); button.Padding = new Padding(8, 0, 8, 0); }
+            }
+            if (row.Controls.Count > 0) row.Controls[row.Controls.Count - 1].Margin = new Padding(0, 1, 0, 1);
+        }
+        private void AddButton(Control panel, string text, Action click) { var b = new Button { Text = text, AutoSize = true }; b.Click += delegate { Guard(click); }; panel.Controls.Add(b); }
         private void Guard(Action action) { try { action(); } catch (Exception e) { MessageBox.Show(this, e.Message, "操作失败", MessageBoxButtons.OK, MessageBoxIcon.Error); } }
         private async Task StartScan()
         {
