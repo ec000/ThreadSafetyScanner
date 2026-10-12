@@ -11,6 +11,7 @@
 - `ThreadSafetyScanner_Offline_Setup_x64.exe`，包含 GUI、两个扫描引擎、规则、许可证和全部必要依赖。
 - C# WinForms，目标 .NET Framework 4.7.1；使用应用私有工具路径。
 - ripgrep / Cppcheck / 综合扫描，规则管理、预览、筛选、取消和历史记录。
+- 支持本地目录、SMB 映射盘和 UNC 共享；10,000 个源码文件或 100,000 个目录项时提示继续/取消。
 - CSV、JSON、Markdown、HTML、TXT、XML、SARIF、XLSX、PDF、ZIP 本地导出，无需 Office。
 - 构建脚本、离线依赖清单、SHA256、中文说明和可审计测试报告。
 
@@ -30,7 +31,7 @@
 
 ## 当前实现与验证
 
-已实现 C# WinForms GUI、三个扫描模式、规则管理、代码位置预览、分类筛选、取消、历史以及十种本地报告导出。内置 ripgrep 13.0.0 与 Cppcheck 2.10-tss1 静态构建。安装器由 NSIS 3.10 编译，只有明确收集并审计的 OfflineRelease 文件会进入安装器。
+已实现 C# WinForms GUI、三个扫描模式、规则管理、代码位置预览、分类筛选、取消、历史以及十种本地报告导出。内置 ripgrep 13.0.0 与 Cppcheck 2.10-tss2 静态构建。支持已连接的 SMB 映射盘/UNC 共享，并对大目录提示；SMB 模式需要局域网共享可达，本地模式仍可完全断网运行。安装器由 NSIS 3.10 编译，只有明确收集并审计的 OfflineRelease 文件会进入安装器。
 
 C# 和 Cppcheck 已完成交叉编译；发布门禁自动测试通过，并已从实际安装器解包核对内置 SHA256。尚无 Windows 1709 运行测试证据，功能和系统兼容性均不能以编译成功替代实测。
 
@@ -45,11 +46,11 @@ C# 和 Cppcheck 已完成交叉编译；发布门禁自动测试通过，并已�
 
 `git clone` 和 GitHub 的 Download ZIP 只获取源码，不含生成的 EXE。普通用户请从预发布附件下载完整安装包，无需安装编译工具或 Python：
 
-- [完整离线安装程序 ThreadSafetyScanner_Offline_Setup_x64.exe](https://github.com/ec000/ThreadSafetyScanner/releases/download/v0.1.0-candidate.2/ThreadSafetyScanner_Offline_Setup_x64.exe)
-- [全部交付文件 ThreadSafetyScanner_Offline_Delivery_x64.zip](https://github.com/ec000/ThreadSafetyScanner/releases/download/v0.1.0-candidate.2/ThreadSafetyScanner_Offline_Delivery_x64.zip)（安装包、源码、构建脚本、许可证、校验清单、中文说明及验证程序）
-- [候选版本说明和校验文件](https://github.com/ec000/ThreadSafetyScanner/releases/tag/v0.1.0-candidate.2)
+- [完整离线安装程序 ThreadSafetyScanner_Offline_Setup_x64.exe](https://github.com/ec000/ThreadSafetyScanner/releases/download/v0.1.0-candidate.3/ThreadSafetyScanner_Offline_Setup_x64.exe)
+- [全部交付文件 ThreadSafetyScanner_Offline_Delivery_x64.zip](https://github.com/ec000/ThreadSafetyScanner/releases/download/v0.1.0-candidate.3/ThreadSafetyScanner_Offline_Delivery_x64.zip)（安装包、源码、构建脚本、许可证、校验清单、中文说明及验证程序）
+- [候选版本说明和校验文件](https://github.com/ec000/ThreadSafetyScanner/releases/tag/v0.1.0-candidate.3)
 
-candidate.2 修正有足够空间仍提示空间不足的安装错误。实际大小和 SHA256 见预发布页面附件。
+candidate.3 增加 SMB 映射盘/UNC 扫描、大目录继续或取消提示，并将规则管理等五个按钮移到独立一行；包含 candidate.2 的磁盘空间误判修复。实际大小和 SHA256 见预发布页面附件。
 
 **这是待 Windows 10 Pro 1709 Build 16299.15 实机验证的预发布候选，并非已通过最终验收的正式版。** 必需工具二进制已内置，但目标系统上的安装、真实扫描及报告导出仍待验证。
 

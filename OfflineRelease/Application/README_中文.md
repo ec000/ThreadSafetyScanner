@@ -7,9 +7,9 @@
 1. 将 `ThreadSafetyScanner_Offline_Setup_x64.exe` 复制到目标电脑，不需要其他安装文件。
 2. 双击，允许安装器的 UAC 提示，选择空安装目录。默认 `C:\Program Files\ThreadSafetyScanner\`。
 3. 从桌面或开始菜单打开 ThreadSafetyScanner。正常启动和扫描不需要管理员权限。
-4. 选择本地 C/C++ 源码目录，勾选 ripgrep、Cppcheck 或同时勾选两个。
+4. 选择本地、SMB 映射盘或 UNC 共享中的 C/C++ 源码目录，勾选 ripgrep、Cppcheck 或同时勾选两个。
 5. 选择**源码的目标平台**：Windows x64 为 win64，MIPS32/Linux 等 32 位项目为 unix32，64 位 Linux 为 unix64。此选项与扫描电脑架构不同。
-6. 点击开始扫描；可随时取消。按优先级、引擎和分类筛选，选中结果预览代码位置。
+6. 点击开始扫描；目录枚举会显示文件统计，可取消任务。发现 10,000 个可扫描源码文件或遍历到 100,000 个目录项时，弹窗提示继续或取消；选择继续不会截断文件列表。按优先级、引擎和分类筛选，选中结果预览代码位置。
 7. 用“导出报告”选择格式；ZIP 包含其他九种报告及说明。报告始终导出全部结果，界面筛选不会缩减导出。
 
 安装器和应用均不下载文件、不配置 PATH、不调用 pip、不依赖系统 Python、Office、Visual Studio 或用户已有的扫描工具。安装器在临时目录验证 SHA256 后才复制文件，安装后再次校验；应用启动及扫描前也校验。
@@ -22,7 +22,7 @@
 - 建议至少 512 MiB 可用内存；大项目需要更多内存。安装器按实际解压载荷计算两倍文件大小加 100 MiB 的可用空间要求，并检查目标磁盘及临时目录所在磁盘。
 - C# WinForms 应用，未使用第三方托管 DLL。
 - `Tools\ripgrep\rg.exe`：ripgrep 13.0.0 官方 x64 MSVC 静态分发。
-- `Tools\cppcheck\cppcheck.exe`：Cppcheck 2.10-tss1 x64 静态构建；附完整 cfg/platforms 数据。修改了 Windows UTF-8 路径接口和构建兼容性，附原始及修改后源码。
+- `Tools\cppcheck\cppcheck.exe`：Cppcheck 2.10-tss2 x64 静态构建；附完整 cfg/platforms 数据。修改了 Windows UTF-8 路径接口、SMB 只读访问范围和构建兼容性，附原始及修改后源码。
 - 不部署 VC++ Runtime/Qt/Python/Rust/现代 .NET 运行时。C++ 运行时静态链接；系统 API 的目标版本可用性仍须实测。
 - Semgrep：**不支持**，未打包，无 Build 16299.15 的完整离线兼容性证据。
 - 28 条内置函数候选规则迁移自用户提供的 v2，许可证和第三方源码均位于 `Licenses\`。
@@ -39,7 +39,15 @@
 - `Reports\`：默认导出位置。
 - `Preview\`：包内报告查看缓存；可以在应用关闭后删除。
 
-源码目录只读。为防止写入源码树，源码不能包含用户配置目录，导出路径不能位于源码内。离线扫描拒绝 UNC、网络映射盘和源码根目录重解析点；跳过子目录符号链接。Cppcheck 的文件接口也拒绝 UNC/网络驱动器/重解析路径，防止头文件 include 指向网络；此类 include 会使任务明确失败。
+源码目录只读。为防止写入源码树，源码不能包含用户配置目录，导出路径不能位于源码内。支持普通本地目录、SMB 映射盘及 UNC 共享路径；拒绝设备路径和源码根目录重解析点，跳过子目录符号链接。Cppcheck 仅允许读取所选源码目录内的网络文件，拒绝范围外的网络头文件、重解析路径及网络写入；此类访问会使任务明确失败。配置、临时文件和默认报告仍保存在当前用户本机。
+
+## SMB 映射盘和共享目录
+
+先用当前 Windows 用户在资源管理器连接 SMB 共享并取得读取权限，然后选择映射盘目录（例如 `Z:\项目\源码`），或直接在源码目录输入框填入 `\\server\share\项目\源码`。扫描器复用已有连接，不保存账号密码，不自行建立映射。请使用与连接共享相同的普通用户运行程序；管理员会话可能看不到普通用户映射的盘符。
+
+三个扫描模式均接受网络目录。SMB 扫描需要局域网共享可达，不需要互联网、在线服务或下载依赖；完全断开网络时请使用本地源码。选择源码子目录时，Cppcheck 引用的网络头文件也必须位于所选范围内，并使用相同的映射盘/UNC 路径形式。
+
+文件数量较多的提示每个任务最多出现一次，默认选择取消。确认继续后，扫描完整枚举结果，保留原有的超大文件、重解析点及读取权限过滤。命令行扫描不弹窗，会把数量警告写入标准错误及任务诊断并继续执行。网络断开或目录无读取权限会报告错误；已跳过的文件/目录使结果标为不完整，不能将零命中当作通过。网络 I/O 中的取消可能需要等待 Windows 网络请求返回。
 
 通过“设置 → 应用”或开始菜单卸载。请先关闭应用和扫描进程。卸载只删除安装器管理的明确文件名，不递归删除安装目录；保留源码、用户报告、规则、历史及未知用户文件。重装会复用用户配置。已有非空安装目录不会被接管，升级前请先卸载。
 
@@ -70,6 +78,8 @@ QA 程序会核对 exact Build/UBR/版本、默认 .NET、无预装开发工具�
 ```text
 ThreadSafetyScanner.exe --verify-payload
 ThreadSafetyScanner.exe --scan "D:\中文 SDK" --engines both --platform unix32 --output "D:\审查报告"
+ThreadSafetyScanner.exe --scan "Z:\项目\源码" --engines both --platform unix32 --output "D:\SMB审查报告"
+ThreadSafetyScanner.exe --scan "\\server\share\项目\源码" --engines both --platform win64 --output "D:\共享审查报告"
 ThreadSafetyScanner.exe --self-test --output "D:\验证报告"
 ThreadSafetyScanner.exe --validate-reports --directory "D:\审查报告" --output "D:\格式验证"
 ```

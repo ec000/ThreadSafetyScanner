@@ -54,7 +54,7 @@ namespace ThreadSafetyScanner
                 if (args.Length < 2) throw new ArgumentException("--scan 需要源码目录。");
                 string engines = Value(args, "--engines", "both"), platform = Value(args, "--platform", "win64");
                 if (!new[] { "rg", "cppcheck", "both" }.Contains(engines)) throw new ArgumentException("--engines 仅支持 rg/cppcheck/both。");
-                var r = Scanner.Scan(args[1], engines != "cppcheck", engines != "rg", platform, CancellationToken.None, s => { });
+                var r = Scanner.Scan(args[1], engines != "cppcheck", engines != "rg", platform, CancellationToken.None, s => Console.Error.WriteLine(s));
                 Exporter.All(r, output); Json.Save(Path.Combine(output, "validation.json"), ReportViewer.ValidateAll(output));
                 return r.Status == "completed" ? 0 : 2;
             }

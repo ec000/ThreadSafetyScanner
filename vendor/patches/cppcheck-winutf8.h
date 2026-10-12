@@ -12,6 +12,7 @@
 #include <vector>
 #include <direct.h>
 #include <stdexcept>
+#include "cppcheck-path-policy.h"
 #ifdef ERROR
 #undef ERROR
 #endif
@@ -37,45 +38,62 @@ inline std::string tss_utf8(const wchar_t* s) {
     WideCharToMultiByte(CP_UTF8, 0, s, -1, b.data(), n, nullptr, nullptr);
     return std::string(b.data());
 }
-inline std::wstring tss_path(const char* s) {
+inline std::wstring tss_path(const char* s, bool allowNetworkRead = true) {
     std::wstring w = tss_wide(s);
-    if (w.size() >= 2 && (w[0] == L'\\' || w[0] == L'/') && (w[1] == L'\\' || w[1] == L'/'))
-        throw std::runtime_error("Offline policy: UNC/device filename denied");
+    if (tss_device_path(w)) throw std::runtime_error("Source policy: device filename denied");
     wchar_t full[32768];
     DWORD n = GetFullPathNameW(w.c_str(), 32768, full, nullptr);
     if (!n || n >= 32768) throw std::runtime_error("Offline policy: cannot normalize filename");
-    std::wstring path(full);
-    if (path.size() < 3 || path[1] != L':') throw std::runtime_error("Offline policy: local drive required");
-    std::wstring root = path.substr(0, 3);
-    if (GetDriveTypeW(root.c_str()) == DRIVE_REMOTE) throw std::runtime_error("Offline policy: mapped network drive denied");
-    // Inspect each prefix before traversing it; never follow a link to a remote header.
-    for (std::size_t i = 3; i <= path.size(); ++i) {
+    std::wstring path = tss_normalize_separators(full);
+    if (tss_device_path(path)) throw std::runtime_error("Source policy: device filename denied");
+    bool unc = path.size() >= 2 && path[0] == L'\\' && path[1] == L'\\';
+    if (!unc && (path.size() < 3 || path[1] != L':')) throw std::runtime_error("Source policy: absolute filename required");
+    bool network = unc || GetDriveTypeW(path.substr(0, 3).c_str()) == DRIVE_REMOTE;
+    if (network) {
+        wchar_t selected[32768], normalized[32768];
+        DWORD size = GetEnvironmentVariableW(L"TSS_SOURCE_ROOT", selected, 32768);
+        DWORD count = size && size < 32768 && !tss_device_path(selected) ? GetFullPathNameW(selected, 32768, normalized, nullptr) : 0;
+        if (!allowNetworkRead || !count || count >= 32768 || !tss_network_read_allowed(path, normalized))
+            throw std::runtime_error("Source policy: network access outside selected source root or network write denied");
+    }
+    // Inspect each directory prefix, retaining the reparse-point restriction for local and SMB sources.
+    std::size_t first = 3;
+    if (unc) {
+        std::size_t server = path.find(L'\\', 2);
+        if (server == std::wstring::npos) throw std::runtime_error("Source policy: UNC share required");
+        std::size_t share = path.find(L'\\', server + 1);
+        first = share == std::wstring::npos ? path.size() : share;
+    }
+    for (std::size_t i = first; i <= path.size(); ++i) {
         if (i != path.size() && path[i] != L'\\' && path[i] != L'/') continue;
         DWORD a = GetFileAttributesW(path.substr(0, i).c_str());
         if (a != INVALID_FILE_ATTRIBUTES && (a & FILE_ATTRIBUTE_REPARSE_POINT))
-            throw std::runtime_error("Offline policy: reparse-point filename denied");
+            throw std::runtime_error("Source policy: reparse-point filename denied");
     }
-    return w;
+    return path;
 }
 namespace std {
 class tss_ifstream : public ifstream {
 public:
     tss_ifstream() = default;
-    explicit tss_ifstream(const char* s, ios_base::openmode m = ios_base::in) : ifstream(tss_path(s).c_str(), m) {}
+    explicit tss_ifstream(const char* s, ios_base::openmode m = ios_base::in) : ifstream(tss_path(s, (m & (ios_base::out | ios_base::app | ios_base::trunc)) == 0).c_str(), m) {}
     explicit tss_ifstream(const string& s, ios_base::openmode m = ios_base::in) : tss_ifstream(s.c_str(), m) {}
-    void open(const char* s, ios_base::openmode m = ios_base::in) { ifstream::open(tss_path(s).c_str(), m); }
+    void open(const char* s, ios_base::openmode m = ios_base::in) { ifstream::open(tss_path(s, (m & (ios_base::out | ios_base::app | ios_base::trunc)) == 0).c_str(), m); }
     void open(const string& s, ios_base::openmode m = ios_base::in) { open(s.c_str(), m); }
 };
 class tss_ofstream : public ofstream {
 public:
     tss_ofstream() = default;
-    explicit tss_ofstream(const char* s, ios_base::openmode m = ios_base::out) : ofstream(tss_path(s).c_str(), m) {}
+    explicit tss_ofstream(const char* s, ios_base::openmode m = ios_base::out) : ofstream(tss_path(s, false).c_str(), m) {}
     explicit tss_ofstream(const string& s, ios_base::openmode m = ios_base::out) : tss_ofstream(s.c_str(), m) {}
-    void open(const char* s, ios_base::openmode m = ios_base::out) { ofstream::open(tss_path(s).c_str(), m); }
+    void open(const char* s, ios_base::openmode m = ios_base::out) { ofstream::open(tss_path(s, false).c_str(), m); }
     void open(const string& s, ios_base::openmode m = ios_base::out) { open(s.c_str(), m); }
 };
 }
-inline FILE* tss_fopen(const char* p, const char* m) { return _wfopen(tss_path(p).c_str(), tss_wide(m).c_str()); }
+inline FILE* tss_fopen(const char* p, const char* m) {
+    bool readOnly = m && m[0] == 'r' && !std::strchr(m, '+');
+    return _wfopen(tss_path(p, readOnly).c_str(), tss_wide(m).c_str());
+}
 struct TssFindData {
     DWORD dwFileAttributes; FILETIME ftCreationTime, ftLastAccessTime, ftLastWriteTime;
     DWORD nFileSizeHigh, nFileSizeLow, dwReserved0, dwReserved1;

@@ -25,6 +25,7 @@ def main():
         z.extractall(source.parent)
     header = ROOT / 'vendor/patches/cppcheck-winutf8.h'
     shutil.copy2(header, source / header.name)
+    shutil.copy2(ROOT / 'vendor/patches/cppcheck-path-policy.h', source / 'cppcheck-path-policy.h')
     main_file = source / 'cli/main.cpp'
     text = main_file.read_text()
     old = 'int main(int argc, char* argv[])\n{'
@@ -45,7 +46,7 @@ def main():
     cli_cmake = source / 'cli/CMakeLists.txt'
     cli_cmake.write_text(cli_cmake.read_text().replace('add_dependencies(cppcheck run-dmake)', '# Cross-build: dmake only regenerates build project files; use shipped files.'))
     shutil.copy2(Path(__file__), source/'build_cppcheck.py')
-    (source / 'TSS-MODIFICATIONS.txt').write_text('ThreadSafetyScanner 2026-10-10: UTF-8 Windows filename wrappers; deny UNC/network/reparse file access; wmain; libc++ allocator rebind fix; disable host dmake dependency for cross-build; static llvm-mingw build. See bundled build_cppcheck.py and cppcheck-winutf8.h. No scanner check logic changes.\n')
+    (source / 'TSS-MODIFICATIONS.txt').write_text('ThreadSafetyScanner 2026-10-12: UTF-8 Windows filename wrappers; allow read-only SMB mapped-drive/UNC access within TSS_SOURCE_ROOT; deny device/reparse paths and network writes; wmain; libc++ allocator rebind fix; disable host dmake dependency for cross-build; static llvm-mingw build. See bundled build_cppcheck.py, cppcheck-winutf8.h and cppcheck-path-policy.h. No scanner check logic changes.\n')
     build = ROOT / 'build/cppcheck-win64'
     common = '-D_WIN32_WINNT=0x0601 -DWINVER=0x0601 -DWIN32_LEAN_AND_MEAN -DNOMINMAX'
     run([args.cmake, '-S', source, '-B', build, '-DCMAKE_POLICY_VERSION_MINIMUM=3.5', '-DCMAKE_SYSTEM_NAME=Windows', '-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY',

@@ -31,7 +31,7 @@ def main():
 
 新应用、安装和兼容性补丁：GPL-3.0-or-later，见 GPL-3.0.txt 和随附 ThreadSafetyScanner-source.zip。
 ripgrep 13.0.0：MIT OR Unlicense，见 ripgrep/；Rust 依赖锁定版本的完整许可证集合见 ripgrep-dependency-licenses.zip（包括可选和构建依赖的超集）。
-Cppcheck 2.10-tss1：GPL-3.0-or-later，原始及修改后的对应源码均随包提供。修改：wmain UTF-8 参数、Win32 W 文件路径、libc++ allocator rebind、移除交叉编译中无关的 dmake 运行、静态运行时，以及拒绝 UNC、映射网络盘和重解析点文件读取。未改变检查规则逻辑。
+Cppcheck 2.10-tss2：GPL-3.0-or-later，原始及修改后的对应源码均随包提供。修改：wmain UTF-8 参数、Win32 W 文件路径、libc++ allocator rebind、移除交叉编译中无关的 dmake 运行、静态运行时，允许所选源码目录内的 SMB 映射盘/UNC 只读访问，拒绝设备路径、重解析点、源码范围外网络访问和网络写入。未改变检查规则逻辑。
 simplecpp：LGPL-3.0-or-later，见 cppcheck/simplecpp_license.txt；对应源码在 Cppcheck 源码包中。可按随附构建脚本重编译和替换组件，再生成校验清单。
 tinyxml2：zlib，见 cppcheck/tinyxml2_license.txt。
 picojson：BSD-2-Clause，见 cppcheck/picojson_license.txt。
@@ -69,7 +69,7 @@ Windows、.NET Framework、系统中文字体由目标操作系统提供，不�
         if mismatches: raise SystemExit('Build inputs differ from committed lock; refusing to rewrite hashes: '+', '.join(mismatches))
     else: lock_path.write_text(json.dumps(lock,indent=2)+'\n')
     deps = {}
-    for key, version, rel, license_id in (('ripgrep','13.0.0','Tools/ripgrep/rg.exe','MIT OR Unlicense'),('cppcheck','2.10-tss1','Tools/cppcheck/cppcheck.exe','GPL-3.0-or-later')):
+    for key, version, rel, license_id in (('ripgrep','13.0.0','Tools/ripgrep/rg.exe','MIT OR Unlicense'),('cppcheck','2.10-tss2','Tools/cppcheck/cppcheck.exe','GPL-3.0-or-later')):
         path = stage/rel
         deps[key] = {'version':version, 'path':rel, 'sha256':hashlib.sha256(path.read_bytes()).hexdigest(), 'sizeBytes':path.stat().st_size, 'license':license_id, 'win1709Execution':'pending'}
     deps['application'] = {'framework':'.NET Framework 4.7.1', 'architecture':'x64', 'thirdPartyManagedDlls':[]}

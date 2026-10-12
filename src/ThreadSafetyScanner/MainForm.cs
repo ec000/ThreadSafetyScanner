@@ -32,18 +32,19 @@ namespace ThreadSafetyScanner
         {
             Text = "ThreadSafetyScanner — 离线线程安全扫描"; Width = 1280; Height = 820; MinimumSize = new Size(900, 600); StartPosition = FormStartPosition.CenterScreen;
             AutoScaleMode = AutoScaleMode.Dpi; Font = new Font("Microsoft YaHei UI", 9);
-            var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 4 };
-            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); layout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); layout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            var pathRow = Row(); pathRow.Controls.Add(new Label { Text = "源码目录", AutoSize = true, Padding = new Padding(0, 7, 0, 0) }); pathRow.Controls.Add(source);
+            var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5 };
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); layout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); layout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); layout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            var pathRow = Row(); pathRow.Controls.Add(new Label { Text = "源码目录（本地 / SMB）", AutoSize = true, Padding = new Padding(0, 7, 0, 0) }); pathRow.Controls.Add(source);
             AddButton(pathRow, "选择目录…", delegate { using (var d = new FolderBrowserDialog()) { if (d.ShowDialog(this) == DialogResult.OK) source.Text = d.SelectedPath; } });
             var scanRow = Row(); scanRow.Controls.Add(rg); scanRow.Controls.Add(cpp); scanRow.Controls.Add(new Label { Text = "源码目标平台", AutoSize = true }); scanRow.Controls.Add(platform);
             platform.Items.AddRange(new object[] { "win64", "unix32", "unix64" }); platform.SelectedIndex = 0;
             scanRow.Controls.Add(start); scanRow.Controls.Add(cancel);
-            AddButton(scanRow, "规则管理", delegate { if (!busy) using (var dialog = new RulesForm()) dialog.ShowDialog(this); });
-            AddButton(scanRow, "历史记录", LoadHistory);
-            AddButton(scanRow, "导出报告…", Export);
-            AddButton(scanRow, "打开导出报告…", delegate { using (var d = new OpenFileDialog { Filter = "离线报告|*.csv;*.json;*.md;*.html;*.txt;*.xml;*.sarif;*.xlsx;*.pdf;*.zip" }) if (d.ShowDialog(this) == DialogResult.OK) ReportViewer.Open(this, d.FileName); });
-            AddButton(scanRow, "日志目录", delegate { Process.Start(new ProcessStartInfo("explorer.exe", ProcessRunner.Quote(Paths.Logs)) { UseShellExecute = true }); });
+            var actionsRow = Row();
+            AddButton(actionsRow, "规则管理", delegate { if (!busy) using (var dialog = new RulesForm()) dialog.ShowDialog(this); });
+            AddButton(actionsRow, "历史记录", LoadHistory);
+            AddButton(actionsRow, "导出报告…", Export);
+            AddButton(actionsRow, "打开导出报告…", delegate { using (var d = new OpenFileDialog { Filter = "离线报告|*.csv;*.json;*.md;*.html;*.txt;*.xml;*.sarif;*.xlsx;*.pdf;*.zip" }) if (d.ShowDialog(this) == DialogResult.OK) ReportViewer.Open(this, d.FileName); });
+            AddButton(actionsRow, "日志目录", delegate { Process.Start(new ProcessStartInfo("explorer.exe", ProcessRunner.Quote(Paths.Logs)) { UseShellExecute = true }); });
             var filters = Row(); filters.Controls.Add(new Label { Text = "筛选", AutoSize = true });
             priority.Items.AddRange(new object[] { "全部优先级", "P1", "P2", "REVIEW" }); priority.SelectedIndex = 0;
             engine.Items.AddRange(new object[] { "全部引擎", "ripgrep", "cppcheck" }); engine.SelectedIndex = 0;
@@ -51,7 +52,7 @@ namespace ThreadSafetyScanner
             filters.Controls.Add(priority); filters.Controls.Add(engine); filters.Controls.Add(category);
             foreach (var filter in new[] { priority, engine, category }) filter.SelectedIndexChanged += delegate { Filter(); };
             var split = new SplitContainer { Dock = DockStyle.Fill, Orientation = Orientation.Horizontal, SplitterDistance = 350 }; split.Panel1.Controls.Add(grid); split.Panel2.Controls.Add(preview);
-            layout.Controls.Add(pathRow, 0, 0); layout.Controls.Add(scanRow, 0, 1); layout.Controls.Add(filters, 0, 2); layout.Controls.Add(split, 0, 3);
+            layout.Controls.Add(pathRow, 0, 0); layout.Controls.Add(scanRow, 0, 1); layout.Controls.Add(actionsRow, 0, 2); layout.Controls.Add(filters, 0, 3); layout.Controls.Add(split, 0, 4);
             Controls.Add(layout); Controls.Add(status);
             start.Click += async delegate { await StartScan(); }; cancel.Click += delegate { if (cancellation != null) cancellation.Cancel(); };
             grid.SelectionChanged += delegate { Preview(); };
@@ -68,10 +69,13 @@ namespace ThreadSafetyScanner
             cancellation = new CancellationTokenSource();
             try
             {
-                report = await Task.Run(() => Scanner.Scan(root, useRg, useCpp, target, cancellation.Token, message => BeginInvoke(new Action(() => status.Text = message))));
+                report = await Task.Run(() => Scanner.Scan(root, useRg, useCpp, target, cancellation.Token,
+                    message => BeginInvoke(new Action(() => status.Text = message.Replace('\n', ' '))),
+                    message => (bool)Invoke(new Func<bool>(() => !cancellation.IsCancellationRequested &&
+                        MessageBox.Show(this, message, "文件数量较多", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes))));
                 category.Items.Clear(); category.Items.Add("全部分类"); foreach (string c in report.Findings.Select(f => f.Category).Distinct()) category.Items.Add(c); category.SelectedIndex = 0;
                 Filter();
-                status.Text = "任务状态：" + report.Status + "；候选 " + report.Findings.Count + "；历史已保存。";
+                status.Text = "任务状态：" + report.Status + "；源码文件 " + report.SourceFileCount + "；候选 " + report.Findings.Count + "；历史已保存。";
                 if (report.Status != "completed") preview.Text = string.Join(Environment.NewLine, report.Diagnostics);
             }
             catch (Exception e) { status.Text = "扫描未完成：" + e.Message; MessageBox.Show(this, e.Message, "扫描失败"); }

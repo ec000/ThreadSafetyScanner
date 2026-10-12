@@ -27,13 +27,15 @@ namespace ThreadSafetyScanner
             }
             b.Append('\\', slashes * 2); return b.Append('"').ToString();
         }
-        public static int Run(string exe, IEnumerable<string> args, string cwd, Action<string> output, out string error, CancellationToken cancel)
+        public static int Run(string exe, IEnumerable<string> args, string cwd, Action<string> output, out string error, CancellationToken cancel, string sourceRoot = null)
         {
             var start = new ProcessStartInfo(exe, string.Join(" ", args.Select(Quote))) {
                 UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true,
                 StandardOutputEncoding = new UTF8Encoding(false, true), StandardErrorEncoding = new UTF8Encoding(false, true), WorkingDirectory = cwd
             };
             start.EnvironmentVariables.Remove("RIPGREP_CONFIG_PATH");
+            start.EnvironmentVariables.Remove("TSS_SOURCE_ROOT");
+            if (sourceRoot != null) start.EnvironmentVariables["TSS_SOURCE_ROOT"] = sourceRoot;
             start.EnvironmentVariables["PATH"] = Environment.GetFolderPath(Environment.SpecialFolder.System);
             using (var process = new Process { StartInfo = start })
             {
@@ -66,15 +68,12 @@ namespace ThreadSafetyScanner
     }
     internal static class Scanner
     {
-        private const long MaxBytes = 24L * 1024 * 1024;
-        private static readonly HashSet<string> Extensions = new HashSet<string>(new[] { ".c", ".h", ".cc", ".cpp", ".cxx", ".hpp", ".hxx", ".hh" }, StringComparer.OrdinalIgnoreCase);
-        private static readonly HashSet<string> Ignored = new HashSet<string>(new[] { ".git", ".svn", ".hg", ".vs", "node_modules", "CMakeFiles" }, StringComparer.OrdinalIgnoreCase);
-        public static ScanReport Scan(string source, bool rg, bool cpp, string platform, CancellationToken cancel, Action<string> progress)
+        public static ScanReport Scan(string source, bool rg, bool cpp, string platform, CancellationToken cancel, Action<string> progress, Func<string, bool> confirmLargeScan = null)
         {
             source = Path.GetFullPath(source);
-            if (!Directory.Exists(source)) throw new DirectoryNotFoundException("源码目录不存在。");
-            if (new Uri(source).IsUnc || new DriveInfo(Path.GetPathRoot(source)).DriveType == DriveType.Network) throw new ArgumentException("离线扫描只接受本地源码目录，不访问网络共享。");
-            if ((File.GetAttributes(source) & FileAttributes.ReparsePoint) != 0) throw new ArgumentException("请直接选择实际本地源码目录，不使用目录链接。");
+            if (source.StartsWith(@"\\?\", StringComparison.Ordinal) || source.StartsWith(@"\\.\", StringComparison.Ordinal)) throw new ArgumentException("请选择本地目录、SMB 映射盘或普通 UNC 共享路径，不使用设备路径。");
+            if (!Directory.Exists(source)) throw new DirectoryNotFoundException("源码目录不存在或无法访问：" + source + "。如果使用 SMB，请先在资源管理器连接共享，检查映射盘、网络和读取权限，并以同一用户运行扫描器。");
+            if ((File.GetAttributes(source) & FileAttributes.ReparsePoint) != 0) throw new ArgumentException("请直接选择实际源码目录，不使用目录链接。");
             if (!rg && !cpp) throw new ArgumentException("至少选择一个扫描引擎。");
             if (!new[] { "win64", "unix32", "unix64" }.Contains(platform)) throw new ArgumentException("无效的源码目标平台。");
             if (Paths.IsWithin(Paths.User, source)) throw new ArgumentException("源码目录不能包含用户配置/报告目录，以免写入源码树。");
@@ -82,10 +81,14 @@ namespace ThreadSafetyScanner
             var rules = RuleStore.Load().Where(r => r.Enabled).ToList();
             if (rg && rules.Count == 0) throw new InvalidDataException("ripgrep 至少需要一条启用的规则。");
             var report = new ScanReport { Source = source, StartedUtc = DateTime.UtcNow.ToString("o"), Engines = rg && cpp ? "ripgrep+cppcheck" : rg ? "ripgrep" : "cppcheck", Platform = platform, Status = "running" };
+            var inventory = new SourceInventory();
             try
             {
+                if (new Uri(source).IsUnc || new DriveInfo(Path.GetPathRoot(source)).DriveType == DriveType.Network)
+                    report.Diagnostics.Add("SMB/网络目录扫描：使用当前 Windows 用户已有的共享连接，只读取源码；网络中断或权限不足可能导致结果不完整。");
                 progress("检查源码目录…");
-                var files = Enumerate(source, report, cancel);
+                FileDiscovery.Collect(source, inventory, report.Diagnostics, cancel, progress, confirmLargeScan);
+                var files = inventory.Files;
                 if (files.Count == 0) throw new InvalidDataException("没有可读取的 C/C++ 源码文件。");
                 if (rg) { progress("ripgrep 快速函数扫描…"); Ripgrep(source, files, rules, report, cancel); }
                 cancel.ThrowIfCancellationRequested();
@@ -95,44 +98,20 @@ namespace ThreadSafetyScanner
             }
             catch (OperationCanceledException) { report.Status = "cancelled"; report.Diagnostics.Add("用户取消：结果不完整。"); }
             catch (Exception ex) { report.Status = "failed"; report.Diagnostics.Add(ex.ToString()); }
+            report.SourceFileCount = inventory.Files.Count;
+            report.VisitedEntryCount = inventory.Entries;
             report.FinishedUtc = DateTime.UtcNow.ToString("o");
             string id = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + "-" + Guid.NewGuid().ToString("N");
             Json.Save(Path.Combine(Paths.History, id + ".json"), report);
             File.WriteAllText(Path.Combine(Paths.Logs, id + ".log"), report.Status + Environment.NewLine + report.Source + Environment.NewLine + string.Join(Environment.NewLine, report.Diagnostics), Encoding.UTF8);
             return report;
         }
-        private static List<string> Enumerate(string source, ScanReport report, CancellationToken cancel)
-        {
-            var files = new List<string>(); var todo = new Stack<string>(); todo.Push(source);
-            while (todo.Count > 0)
-            {
-                cancel.ThrowIfCancellationRequested(); string dir = todo.Pop();
-                try
-                {
-                    foreach (string child in Directory.EnumerateFileSystemEntries(dir))
-                    {
-                        cancel.ThrowIfCancellationRequested();
-                        var attrs = File.GetAttributes(child);
-                        if ((attrs & FileAttributes.ReparsePoint) != 0) { report.Diagnostics.Add("INCOMPLETE: 跳过符号链接/重解析点 " + child); continue; }
-                        if ((attrs & FileAttributes.Directory) != 0) { if (!Ignored.Contains(Path.GetFileName(child))) todo.Push(child); }
-                        else if (Extensions.Contains(Path.GetExtension(child)))
-                        {
-                            if (new FileInfo(child).Length > MaxBytes) report.Diagnostics.Add("INCOMPLETE: 跳过超过 24 MiB 的文件 " + child);
-                            else files.Add(child);
-                        }
-                    }
-                }
-                catch (OperationCanceledException) { throw; }
-                catch (Exception ex) { report.Diagnostics.Add("INCOMPLETE: 无法读取目录 " + dir + ": " + ex.Message); }
-            }
-            return files;
-        }
         private static void Ripgrep(string source, List<string> files, List<Rule> rules, ScanReport report, CancellationToken cancel)
         {
             string pattern = @"\b(?:" + string.Join("|", rules.Select(r => Regex.Escape(r.Function))) + @")\s*\(";
             var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var args = new List<string> { "--json", "--no-config", "--no-ignore", "--hidden", "--multiline", "--color=never", "--max-filesize=24M", "--glob=*.{c,h,cc,cpp,cxx,hpp,hh,hxx}" };
-            args.AddRange(Ignored.Select(d => "--glob=!**/" + d + "/**"));
+            args.AddRange(FileDiscovery.Ignored.Select(d => "--glob=!**/" + d + "/**"));
             args.Add("--"); args.Add(pattern); args.Add(source);
             string stderr;
             int exit = ProcessRunner.Run(Paths.Tool("ripgrep"), args, Path.GetDirectoryName(Paths.Tool("ripgrep")), line => {
@@ -210,7 +189,7 @@ namespace ThreadSafetyScanner
                 string stderr;
                 var stdout = new StringBuilder();
                 int exit = ProcessRunner.Run(Paths.Tool("cppcheck"), new[] { "--quiet", "--xml", "--xml-version=2", "--enable=warning,style,performance,portability,information", "--inconclusive", "--max-configs=12", "--error-exitcode=10", "--platform=" + platform, "--library=" + Path.Combine(Paths.Root, "Tools", "cppcheck", "cfg", "std.cfg"), "--file-list=" + list },
-                    Path.GetDirectoryName(Paths.Tool("cppcheck")), line => stdout.AppendLine(line), out stderr, cancel);
+                    Path.GetDirectoryName(Paths.Tool("cppcheck")), line => stdout.AppendLine(line), out stderr, cancel, source);
                 if (exit != 0 && exit != 10) throw new InvalidOperationException("Cppcheck 失败，返回码 " + exit + ": " + stderr + stdout);
                 XDocument xml;
                 using (var reader = XmlReader.Create(new StringReader(stderr), new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null })) xml = XDocument.Load(reader);

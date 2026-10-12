@@ -39,6 +39,8 @@ namespace ThreadSafetyScanner
         public string Engines { get; set; }
         public string Platform { get; set; }
         public string Status { get; set; }
+        public int SourceFileCount { get; set; }
+        public long VisitedEntryCount { get; set; }
         public string Scope { get; set; }
         public List<Finding> Findings { get; set; }
         public List<string> Diagnostics { get; set; }
